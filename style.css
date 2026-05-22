@@ -92,6 +92,7 @@ html, body {
   background: var(--epfl-gray-100);
   border-radius: 2px; padding: 2px;
 }
+
 .view-btn {
   display: flex; align-items: center; gap: 5px;
   padding: 5px 10px; border-radius: 2px;
@@ -672,6 +673,7 @@ html, body {
   .header-count       { display: none; }
   .header-share-btn   { display: none; }
   .header-suggest-btn { display: none; }
+  .lang-switcher      { display: none; }
   .header-search-wrap { display: none; }   /* hidden — panel drawer has search instead */
   .filterbar-label    { display: none; }
   .filterbar          { padding: 0 12px; }

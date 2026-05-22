@@ -1,6 +1,7 @@
 // ── ui.js — Sidebar, filters, search, popups, kanban, unit view, URL state ─
 // Depends on: window.SERVICES  (populated by bootstrap in index.html)
 //             window.MapModule  (defined in map.js)
+//             window.i18n       (defined in i18n.js)
 
 // ── Constants ──────────────────────────────────────────────────────────────
 const PHASE_COLORS = {
@@ -23,6 +24,17 @@ const PHASE_ORDER = [
   "Archiving",
   "Discover & Reuse",
 ];
+
+// Maps CSV phase values to i18n keys for display
+const PHASE_I18N_KEY = {
+  "Planning & Design":     "cycle.plan",
+  "Data Collection":       "cycle.col",
+  "Processing & Analysis": "cycle.process",
+  "Use & Store":           "cycle.store",
+  "Publication & Sharing": "cycle.pub",
+  "Archiving":             "cycle.arch",
+  "Discover & Reuse":      "cycle.disc",
+};
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
@@ -48,7 +60,9 @@ function planUrl(office) {
 }
 
 function phaseTagHTML(label, color) {
-  return `<span class="phase-tag" style="background:${color}20;color:${color}">${esc(label)}</span>`;
+  const key = PHASE_I18N_KEY[label];
+  const displayLabel = key ? i18n.t(key) : label;
+  return `<span class="phase-tag" style="background:${color}20;color:${color}">${esc(displayLabel)}</span>`;
 }
 
 function scrollToActive() {
@@ -74,6 +88,15 @@ function esc(str) {
     .replace(/'/g, "&#39;");
 }
 
+// Returns the localised description for a service row.
+// Falls back to French description if EN is empty.
+function serviceDesc(s) {
+  if (i18n.lang === "en" && s.Description_EN && s.Description_EN.trim()) {
+    return s.Description_EN.trim();
+  }
+  return s.Description || "";
+}
+
 // ── State ──────────────────────────────────────────────────────────────────
 let activeFilter   = "all";
 let searchQuery    = "";
@@ -93,7 +116,6 @@ function pushURLState(idx) {
   } else {
     params.delete("service");
   }
-  // Persist active filter and view in URL
   if (activeFilter !== "all") {
     params.set("phase", activeFilter);
   } else {
@@ -104,29 +126,39 @@ function pushURLState(idx) {
   } else {
     params.delete("view");
   }
+  // Lang is managed by i18n.js — don't touch it here, just preserve it
   const newURL = `${window.location.pathname}${params.toString() ? "?" + params : ""}`;
   window.history.replaceState({}, "", newURL);
 }
 
-// Build a shareable URL for current filter/view state
+// Build a shareable URL for current filter/view/lang state
 function buildShareURL() {
   const params = new URLSearchParams();
   if (activeFilter !== "all") params.set("phase", activeFilter);
   if (activeView !== "map")   params.set("view", activeView);
   if (searchQuery)            params.set("q", searchQuery);
+  if (i18n.lang !== "fr")    params.set("lang", i18n.lang);
   return `${window.location.origin}${window.location.pathname}${params.toString() ? "?" + params : ""}`;
 }
 
 function restoreURLState() {
   const params = new URLSearchParams(window.location.search);
 
-  // Restore view
+  // Restore language first so everything renders in the right lang
+  const lang = params.get("lang");
+  if (lang === "en" || lang === "fr") {
+    i18n.setLang(lang);
+    document.querySelectorAll("[data-lang]").forEach(btn => {
+      btn.classList.toggle("active", btn.dataset.lang === lang);
+    });
+    applyI18n();
+  }
+
   const view = params.get("view");
   if (view === "kanban" || view === "units") {
     switchView(view);
   }
 
-  // Restore phase filter
   const phase = params.get("phase");
   if (phase) {
     activeFilter = phase;
@@ -136,7 +168,6 @@ function restoreURLState() {
     resetAndRefresh();
   }
 
-  // Restore search query
   const q = params.get("q");
   if (q) {
     searchQuery = q;
@@ -144,7 +175,6 @@ function restoreURLState() {
     resetAndRefresh();
   }
 
-  // Restore open service
   const name = params.get("service");
   if (name) {
     const idx = (window.SERVICES || []).findIndex(
@@ -160,12 +190,13 @@ function isVisible(s, idx) {
   if (clusterIndices !== null && !clusterIndices.includes(idx)) return false;
   const matchPhase  = activeFilter === "all" || s.Phase === "All" || s.Phase.includes(activeFilter);
   const q           = searchQuery.toLowerCase();
+  const desc        = serviceDesc(s);
   const matchSearch = !q
     || s.Service.toLowerCase().includes(q)
     || s.Unit.toLowerCase().includes(q)
     || (s.Office      || "").toLowerCase().includes(q)
     || (s.Contact     || "").toLowerCase().includes(q)
-    || (s.Description || "").toLowerCase().includes(q);
+    || (desc          || "").toLowerCase().includes(q);
   return matchPhase && matchSearch;
 }
 
@@ -213,7 +244,6 @@ function switchView(view) {
   document.getElementById("kanban-container").classList.toggle("hidden", view !== "kanban");
   document.getElementById("units-container").classList.toggle("hidden", view !== "units");
 
-  // Sidebar and filterbar only make sense in map view
   document.getElementById("panel").classList.toggle("hidden", view !== "map");
   document.getElementById("filterbar").classList.toggle("hidden", view !== "map");
 
@@ -230,11 +260,10 @@ function toggleFullscreen() {
   document.getElementById("panel").classList.toggle("hidden", mapFullscreen);
   document.getElementById("filterbar").classList.toggle("hidden", mapFullscreen);
   const btn = document.getElementById("fullscreen-btn");
-  btn.title = mapFullscreen ? "Quitter le plein écran" : "Plein écran";
+  btn.title = mapFullscreen ? i18n.t("map.fullscreen.exit") : i18n.t("map.fullscreen.enter");
   btn.innerHTML = mapFullscreen
     ? `<svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M5 1H1v4M9 1h4v4M5 13H1V9M9 13h4V9"/></svg>`
     : `<svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M1 5V1h4M9 1h4v4M1 9v4h4M13 9v4H9"/></svg>`;
-  // Invalidate Leaflet map size after layout change
   setTimeout(() => window.MapModule.invalidateSize(), 50);
 }
 
@@ -280,10 +309,12 @@ function renderDetailPanel(idx) {
   const s = window.SERVICES[idx];
   if (!s) return;
 
+  const t           = k => i18n.t(k);
   const phases      = s.Phase.split(",").map(p => p.trim()).filter(Boolean);
   const safeURL     = s.URL ? s.URL.replace(/'/g, "%27") : null;
-  const shareURL    = `${window.location.origin}${window.location.pathname}?service=${encodeURIComponent(s.Service)}`;
+  const shareURL    = `${window.location.origin}${window.location.pathname}?service=${encodeURIComponent(s.Service)}${i18n.lang !== "fr" ? "&lang=" + i18n.lang : ""}`;
   const safeShareURL = shareURL.replace(/'/g, "%27");
+  const desc        = serviceDesc(s);
 
   document.getElementById("detail-content").innerHTML = `
     <div class="detail-header">
@@ -297,46 +328,53 @@ function renderDetailPanel(idx) {
     <div class="detail-body">
       ${s.Office ? `
         <div class="detail-field">
-          <div class="detail-field-label">Bureau</div>
+          <div class="detail-field-label">${t("detail.field.office")}</div>
           <div class="detail-field-value">
-            <a href="${planUrl(s.Office)}" target="_blank">⌖ ${esc(s.Office)} — voir sur le plan ↗</a>
+            <a href="${planUrl(s.Office)}" target="_blank">⌖ ${esc(s.Office)} — ${t("detail.plan")}</a>
           </div>
         </div>` : ""}
       ${s.Contact ? `
         <div class="detail-field">
-          <div class="detail-field-label">Contact</div>
+          <div class="detail-field-label">${t("detail.field.contact")}</div>
           <div class="detail-field-value">
             <a href="mailto:${esc(s.Contact)}">${esc(s.Contact)}</a>
           </div>
         </div>` : ""}
-      ${s.Description ? `
+      ${desc ? `
         <div class="detail-field">
-          <div class="detail-field-label">Description</div>
-          <div class="detail-field-value">${esc(s.Description)}</div>
+          <div class="detail-field-label">${t("detail.field.description")}</div>
+          <div class="detail-field-value">${esc(desc)}</div>
         </div>` : ""}
     </div>
     <div class="detail-actions">
       ${safeURL ? `
         <a href="${safeURL}" target="_blank" class="detail-btn-primary">
-          Accéder au service →
+          ${t("detail.access")}
         </a>` : ""}
       <button class="detail-btn-secondary"
-        onclick="navigator.clipboard?.writeText('${safeShareURL}').then(()=>this.textContent='✓ Lien copié!');setTimeout(()=>this.textContent='⧉ Copier le lien',1500)">
-        ⧉ Copier le lien
+        onclick="navigator.clipboard?.writeText('${safeShareURL}').then(()=>{this.textContent='${t("detail.link.copied")}';this.dataset.copied='1'});setTimeout(()=>{this.textContent='${t("detail.copy.link")}';delete this.dataset.copied},1500)">
+        ${t("detail.copy.link")}
       </button>
     </div>
   `;
 }
 
+function getFilterLabel() {
+  if (activeFilter === "all") return i18n.t("panel.all");
+  const key = PHASE_I18N_KEY[activeFilter];
+  return key ? i18n.t(key) : activeFilter;
+}
+
 // ── List rendering ─────────────────────────────────────────────────────────
 function renderList() {
+  const t        = k => i18n.t(k);
   const services = window.SERVICES || [];
   const list     = document.getElementById("panel-list");
   const countEl  = document.getElementById("panel-count-num");
   const labelEl  = document.getElementById("panel-count-text");
   const visible  = services.filter((s, i) => isVisible(s, i));
 
-  document.getElementById("header-count").textContent = `${services.length} services`;
+  document.getElementById("header-count").textContent = `${services.length} ${i18n.t("kanban.stat.services")}`;
   countEl.textContent = visible.length;
 
   if (clusterIndices !== null) {
@@ -344,25 +382,25 @@ function renderList() {
     const freq    = {};
     offices.forEach(o => { freq[o] = (freq[o] || 0) + 1; });
     const top = Object.entries(freq).sort((a, b) => b[1] - a[1])[0];
-    const loc = top ? top[0].split(" ").slice(0, 2).join(" ") : "même lieu";
+    const loc = top ? top[0].split(" ").slice(0, 2).join(" ") : i18n.t("cluster.same.location");
     document.getElementById("cluster-bar-label").textContent =
       `${clusterIndices.length} services · ${loc}`;
     document.getElementById("cluster-bar").classList.add("visible");
-    labelEl.textContent = "Dans ce bâtiment";
+    labelEl.textContent = i18n.t("panel.building");
   } else if (activeFilter !== "all") {
-    labelEl.textContent = activeFilter;
+    labelEl.textContent = getFilterLabel();
   } else if (searchQuery) {
     labelEl.textContent = `"${searchQuery}"`;
   } else {
-    labelEl.textContent = "Tous les services";
+    labelEl.textContent = i18n.t("panel.all");
   }
 
   if (visible.length === 0) {
     list.innerHTML = `
       <div class="empty-state">
         <div class="empty-icon">⌕</div>
-        <div class="empty-title">Aucun service trouvé</div>
-        <div class="empty-sub">Essayez d'autres termes ou contactez l'équipe RDM pour signaler un service manquant.</div>
+        <div class="empty-title">${t("empty.title")}</div>
+        <div class="empty-sub">${t("empty.sub")}</div>
         <a href="mailto:researchdata@epfl.ch" class="empty-link">researchdata@epfl.ch</a>
       </div>`;
     return;
@@ -397,29 +435,30 @@ function renderList() {
 
 // ── Kanban rendering ───────────────────────────────────────────────────────
 function renderKanban() {
+  const t         = k => i18n.t(k);
   const services  = window.SERVICES || [];
   const container = document.getElementById("kanban-board");
   const q         = searchQuery.toLowerCase();
 
   const filtered = services.filter(s => {
     if (!q) return true;
+    const desc = serviceDesc(s);
     return s.Service.toLowerCase().includes(q)
       || s.Unit.toLowerCase().includes(q)
       || (s.Office      || "").toLowerCase().includes(q)
       || (s.Contact     || "").toLowerCase().includes(q)
-      || (s.Description || "").toLowerCase().includes(q);
+      || (desc          || "").toLowerCase().includes(q);
   });
 
-  // Compute global stats for the stats bar
   const unitCount = new Set(services.map(s => s.Unit).filter(Boolean)).size;
   const statsEl   = document.getElementById("kanban-stats");
   if (statsEl) {
     statsEl.innerHTML = `
-      <span class="kstat"><strong>${services.length}</strong> services</span>
+      <span class="kstat"><strong>${services.length}</strong> ${t("kanban.stat.services")}</span>
       <span class="kstat-sep">·</span>
-      <span class="kstat"><strong>${PHASE_ORDER.length}</strong> phases RDLC</span>
+      <span class="kstat"><strong>${PHASE_ORDER.length}</strong> ${t("kanban.stat.phases")}</span>
       <span class="kstat-sep">·</span>
-      <span class="kstat"><strong>${unitCount}</strong> unités impliquées</span>
+      <span class="kstat"><strong>${unitCount}</strong> ${t("kanban.stat.units")}</span>
     `;
   }
 
@@ -442,17 +481,17 @@ function renderKanban() {
           ${s.Audience ? `<span class="kanban-card-audience">· ${esc(s.Audience)}</span>` : ""}
         </div>
         ${s.Office  ? `<div class="kanban-card-office">◎ ${esc(s.Office)}</div>` : ""}
-        ${s.Phase === "All" ? `<span class="kanban-card-all-badge">Toutes phases</span>` : ""}
+        ${s.Phase === "All" ? `<span class="kanban-card-all-badge">${t("kanban.all.badge")}</span>` : ""}
       </div>`;
     }).join("");
 
     return `<div class="kanban-col" data-phase="${esc(phase)}">
       <div class="kanban-col-header" style="border-top-color:${color}">
-        <span class="kanban-col-title">${esc(phase)}</span>
+        <span class="kanban-col-title">${esc(t(PHASE_I18N_KEY[phase] || phase))}</span>
         <span class="kanban-col-count" style="background:${color}20;color:${color}">${cols.length}</span>
       </div>
       <div class="kanban-col-body">
-        ${cards || `<div class="kanban-empty">—</div>`}
+        ${cards || `<div class="kanban-empty">${t("kanban.empty")}</div>`}
       </div>
     </div>`;
   }).join("");
@@ -460,41 +499,41 @@ function renderKanban() {
 
 // ── Unit view rendering ────────────────────────────────────────────────────
 function renderUnits() {
+  const t         = k => i18n.t(k);
   const services  = window.SERVICES || [];
   const container = document.getElementById("units-board");
   const q         = searchQuery.toLowerCase();
 
   const filtered = services.filter(s => {
     if (!q) return true;
+    const desc = serviceDesc(s);
     return s.Service.toLowerCase().includes(q)
       || s.Unit.toLowerCase().includes(q)
       || (s.Office      || "").toLowerCase().includes(q)
       || (s.Contact     || "").toLowerCase().includes(q)
-      || (s.Description || "").toLowerCase().includes(q);
+      || (desc          || "").toLowerCase().includes(q);
   });
 
-  // Group by unit, sorted alphabetically
   const byUnit = {};
   filtered.forEach(s => {
-    const unit = s.Unit || "Sans unité";
+    const unit = s.Unit || t("units.no.unit");
     if (!byUnit[unit]) byUnit[unit] = [];
     byUnit[unit].push(s);
   });
 
-  const sortedUnits = Object.keys(byUnit).sort((a, b) => a.localeCompare(b, "fr"));
+  const sortedUnits = Object.keys(byUnit).sort((a, b) => a.localeCompare(b, i18n.lang));
 
-  // Stats
   const statsEl = document.getElementById("units-stats");
   if (statsEl) {
     statsEl.innerHTML = `
-      <span class="kstat"><strong>${sortedUnits.length}</strong> unités</span>
+      <span class="kstat"><strong>${sortedUnits.length}</strong> ${t("units.stat.units")}</span>
       <span class="kstat-sep">·</span>
-      <span class="kstat"><strong>${filtered.length}</strong> services</span>
+      <span class="kstat"><strong>${filtered.length}</strong> ${t("units.stat.services")}</span>
     `;
   }
 
   if (sortedUnits.length === 0) {
-    container.innerHTML = `<div class="units-empty">Aucun résultat pour "${esc(searchQuery)}"</div>`;
+    container.innerHTML = `<div class="units-empty">${t("units.empty")} "${esc(searchQuery)}"</div>`;
     return;
   }
 
@@ -526,7 +565,6 @@ function renderUnits() {
 
 // ── Kanban phase highlight (cross-view visual link) ────────────────────────
 function highlightPhase(phase) {
-  // Dim all kanban columns except hovered one
   document.querySelectorAll(".kanban-col").forEach(col => {
     if (phase === null) {
       col.classList.remove("dimmed");
@@ -588,8 +626,9 @@ function isInCluster(idx) {
 
 // ── Popup HTML (map hover/click — compact) ─────────────────────────────────
 function buildPopupHTML(idx) {
+  const t = k => i18n.t(k);
   const s = window.SERVICES[idx];
-  if (!s) return "<div class='popup-inner'>Service introuvable.</div>";
+  if (!s) return `<div class='popup-inner'>${t("detail.not.found")}</div>`;
 
   const phases  = s.Phase.split(",").map(p => p.trim()).filter(Boolean);
   const safeURL = s.URL ? s.URL.replace(/'/g, "%27") : null;
@@ -597,12 +636,11 @@ function buildPopupHTML(idx) {
   return `<div class="popup-inner">
     <div class="popup-unit">${esc(s.Unit)}</div>
     <div class="popup-name">${esc(s.Service)}</div>
-    
     ${s.Audience ? `<div class="popup-audience">◉ ${esc(s.Audience)}</div>` : ""}
     ${s.Office
       ? `<div class="popup-office">
-           <a href="${planUrl(s.Office)}" target="_blank" title="Voir sur le plan EPFL">
-              ⌖ ${esc(s.Office)} — voir sur le plan ↗
+           <a href="${planUrl(s.Office)}" target="_blank" title="${t("popup.plan")}">
+              ⌖ ${esc(s.Office)} — ${t("popup.plan.link")}
            </a>
          </div>`
       : ""}
@@ -615,11 +653,11 @@ function buildPopupHTML(idx) {
     <div class="popup-actions">
       ${safeURL
         ? `<button class="popup-btn" onclick="window.open('${safeURL}','_blank')">
-             Accéder au service →
+             ${t("popup.access")}
            </button>`
         : ""}
       <button class="popup-btn-secondary" onclick="UIModule.openDetail(${idx})">
-        Voir la fiche complète
+        ${t("popup.detail")}
       </button>
     </div>
   </div>`;
@@ -633,7 +671,6 @@ function resetAll() {
   activeDetail   = null;
   clusterIndices = null;
 
-  // Reset search inputs (header + panel)
   document.querySelectorAll(".search-input-field").forEach(el => el.value = "");
 
   document.querySelectorAll(".filter-chip").forEach(b => b.classList.remove("active"));
@@ -643,8 +680,6 @@ function resetAll() {
   document.getElementById("detail-panel").classList.remove("open", "open-kanban");
 
   if (activeView !== "map") switchView("map");
-
-  // Exit fullscreen if active
   if (mapFullscreen) toggleFullscreen();
 
   pushURLState(null);
@@ -652,8 +687,66 @@ function resetAll() {
   window.MapModule.resetView();
 }
 
+// ── Language toggle ────────────────────────────────────────────────────────
+function setupLangToggle() {
+  document.querySelectorAll("[data-lang]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const lang = btn.dataset.lang;
+      i18n.setLang(lang);
+      document.querySelectorAll("[data-lang]").forEach(b => {
+        b.classList.toggle("active", b.dataset.lang === lang);
+      });
+    });
+  });
+}
+
+function applyI18n() {
+  // Keys whose translation contains HTML (e.g. <strong>) — use innerHTML
+  const HTML_KEYS = new Set(["footer.initiative", "error.csv"]);
+
+  document.querySelectorAll("[data-i18n]").forEach(el => {
+    const key = el.dataset.i18n;
+    const val = i18n.t(key);
+    // Only update leaf nodes (no element children) OR known HTML keys
+    // This prevents overwriting chip-dot / chip-count siblings
+    if (HTML_KEYS.has(key)) {
+      el.innerHTML = val;
+    } else if (el.children.length === 0) {
+      el.textContent = val;
+    }
+    // Elements with children but no HTML key are translated
+    // via their own child [data-i18n] spans — skip them here
+  });
+  document.querySelectorAll("[data-i18n-placeholder]").forEach(el => {
+    el.placeholder = i18n.t(el.dataset.i18nPlaceholder);
+  });
+  document.querySelectorAll("[data-i18n-aria]").forEach(el => {
+    el.setAttribute("aria-label", i18n.t(el.dataset.i18nAria));
+  });
+
+  // Update suggest mailto href with correct language content
+  const suggestBtn = document.querySelector(".header-suggest-btn");
+  if (suggestBtn) {
+    const subj = i18n.t("header.suggest.mailto.subject");
+    const body = i18n.t("header.suggest.mailto.body");
+    suggestBtn.href = `mailto:researchdata@epfl.ch?subject=${subj}&body=${body}`;
+  }
+}
+
 // ── Init ───────────────────────────────────────────────────────────────────
 function init() {
+  // Apply translations to static DOM before anything else
+  applyI18n();
+  i18n.onChange(() => {
+    applyI18n();
+    renderList();
+    if (activeView === "kanban") renderKanban();
+    if (activeView === "units") renderUnits();
+  });
+  setupLangToggle();
+  renderList();
+  restoreURLState();
+
   // Filter chips
   document.querySelectorAll(".filter-chip").forEach(btn => {
     btn.addEventListener("click", () => {
@@ -688,9 +781,9 @@ function init() {
   });
 
   // View switcher
-  document.getElementById("view-map-btn").addEventListener("click", () => { switchView("map"); closeDetail(); });
+  document.getElementById("view-map-btn").addEventListener("click",    () => { switchView("map");    closeDetail(); });
   document.getElementById("view-kanban-btn").addEventListener("click", () => { switchView("kanban"); closeDetail(); });
-  document.getElementById("view-units-btn").addEventListener("click", () => { switchView("units"); closeDetail(); });
+  document.getElementById("view-units-btn").addEventListener("click",  () => { switchView("units");  closeDetail(); });
 
   // Fullscreen
   document.getElementById("fullscreen-btn").addEventListener("click", toggleFullscreen);
@@ -699,8 +792,12 @@ function init() {
   document.getElementById("share-view-btn").addEventListener("click", function() {
     const url = buildShareURL();
     navigator.clipboard?.writeText(url).then(() => {
-      this.textContent = "✓ Lien copié !";
-      setTimeout(() => { this.textContent = "↗ Partager cette vue"; }, 2000);
+      this.dataset.copied = "1";
+      this.textContent = i18n.t("header.share.copied");
+      setTimeout(() => {
+        this.textContent = i18n.t("header.share");
+        delete this.dataset.copied;
+      }, 2000);
     });
   });
 

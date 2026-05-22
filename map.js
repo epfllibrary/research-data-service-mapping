@@ -36,7 +36,6 @@
 
     map.addLayer(clusterGroup);
 
-    // Update offscreen badges on every pan/zoom
     map.on("moveend zoomend", updateOffscreenIndicator);
 
     map.on("click", () => {
@@ -109,27 +108,23 @@
   }
 
   // ── Off-screen markers indicator — 8 directions ───────────────────────────
-  // Compass badges appear on map edges when filtered markers exist off-screen.
-  // Click → fitBounds precisely to those markers.
-
   let offscreenTimer = null;
 
   const DIRS = [
-    { id: 'n',  label: '↑',  tip: 'nord' },
-    { id: 'ne', label: '↗',  tip: 'nord-est' },
-    { id: 'e',  label: '→',  tip: 'est' },
-    { id: 'se', label: '↘',  tip: 'sud-est' },
-    { id: 's',  label: '↓',  tip: 'sud' },
-    { id: 'sw', label: '↙',  tip: 'sud-ouest' },
-    { id: 'w',  label: '←',  tip: 'ouest' },
-    { id: 'nw', label: '↖',  tip: 'nord-ouest' },
+    { id: 'n',  label: '↑',  tipKey: 'offscreen.tip.n'  },
+    { id: 'ne', label: '↗',  tipKey: 'offscreen.tip.ne' },
+    { id: 'e',  label: '→',  tipKey: 'offscreen.tip.e'  },
+    { id: 'se', label: '↘',  tipKey: 'offscreen.tip.se' },
+    { id: 's',  label: '↓',  tipKey: 'offscreen.tip.s'  },
+    { id: 'sw', label: '↙',  tipKey: 'offscreen.tip.sw' },
+    { id: 'w',  label: '←',  tipKey: 'offscreen.tip.w'  },
+    { id: 'nw', label: '↖',  tipKey: 'offscreen.tip.nw' },
   ];
 
-  // Map angle (0=N, clockwise) → 8-sector direction id
   function angleToDir(lat, lng, center) {
-    const dLat = lat - center.lat;
-    const dLng = lng - center.lng;
-    const angle = Math.atan2(dLng, dLat) * 180 / Math.PI; // 0=N, clockwise
+    const dLat   = lat - center.lat;
+    const dLng   = lng - center.lng;
+    const angle  = Math.atan2(dLng, dLat) * 180 / Math.PI;
     const sector = Math.round(((angle + 360) % 360) / 45) % 8;
     return DIRS[sector].id;
   }
@@ -139,18 +134,14 @@
     offscreenTimer = setTimeout(() => {
       const bounds  = map.getBounds();
       const center  = bounds.getCenter();
-
-      // Tolerance: ignore markers within 30% of the bounds size beyond the edge.
-      // This avoids noise from markers just barely off-screen.
-      const latMargin = (bounds.getNorth() - bounds.getSouth()); //* 0.80;
-      const lngMargin = (bounds.getEast()  - bounds.getWest()); // * 0.80;
+      const latMargin = (bounds.getNorth() - bounds.getSouth());
+      const lngMargin = (bounds.getEast()  - bounds.getWest());
 
       const tolerantBounds = L.latLngBounds(
         [bounds.getSouth() - latMargin, bounds.getWest() - lngMargin],
         [bounds.getNorth() + latMargin, bounds.getEast() + lngMargin]
       );
 
-      // Collect off-screen points by direction
       const byDir = {};
       DIRS.forEach(d => { byDir[d.id] = []; });
 
@@ -159,7 +150,6 @@
         const lat = parseFloat(s.Latitude);
         const lng = parseFloat(s.Longitude);
         if (isNaN(lat) || isNaN(lng)) return;
-        // Skip if within the tolerant (extended) bounds
         if (tolerantBounds.contains([lat, lng])) return;
         byDir[angleToDir(lat, lng, center)].push([lat, lng]);
       });
@@ -167,28 +157,28 @@
       const container = document.getElementById('map-container');
 
       DIRS.forEach(d => {
-        const pts = byDir[d.id];
-        let badge = document.getElementById(`offscreen-${d.id}`);
+        const pts  = byDir[d.id];
+        let badge  = document.getElementById(`offscreen-${d.id}`);
+        const tip  = window.i18n ? window.i18n.t(d.tipKey) : d.tipKey;
+        const verb = window.i18n ? window.i18n.t("offscreen.tooltip") : "service(s) au";
+        const act  = window.i18n ? window.i18n.t("offscreen.tooltip.action") : "cliquer pour voir";
 
         if (pts.length > 0) {
           if (!badge) {
             badge = document.createElement('button');
-            badge.id = `offscreen-${d.id}`;
+            badge.id        = `offscreen-${d.id}`;
             badge.className = `offscreen-badge offscreen-${d.id}`;
             container.appendChild(badge);
           }
 
-          // On click: fitBounds exactly on those off-screen markers + a bit of
-          // the current view center so context isn't lost
           badge.onclick = () => {
             const b = L.latLngBounds(pts);
-            // Extend slightly with current view center for context
             b.extend([center.lat, center.lng]);
             map.fitBounds(b, { padding: [60, 60], maxZoom: 17, animate: true });
           };
 
-          badge.title   = `${pts.length} service(s) au ${d.tip} — cliquer pour voir`;
-          badge.innerHTML = `${d.label}<span>${pts.length}</span>`;
+          badge.title      = `${pts.length} ${verb} ${tip} — ${act}`;
+          badge.innerHTML  = `${d.label}<span>${pts.length}</span>`;
           badge.style.display = 'flex';
         } else if (badge) {
           badge.style.display = 'none';
