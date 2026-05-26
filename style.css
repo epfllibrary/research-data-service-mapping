@@ -412,6 +412,22 @@ html, body {
 .panel-footer-contact a { color: var(--epfl-canard); text-decoration: none; font-weight: 500; }
 .panel-footer-contact a:hover { text-decoration: underline; }
 
+/* Lang switcher inside mobile drawer footer */
+.panel-footer-lang {
+  display: none; /* shown only on mobile via media query */
+  gap: 4px; margin-bottom: 10px;
+}
+.panel-lang-btn {
+  padding: 5px 14px; border-radius: 2px; border: none; cursor: pointer;
+  font-family: "Suisse Int'l", Arial, sans-serif;
+  font-size: 12px; font-weight: 600;
+  background: var(--epfl-white); color: var(--c-muted);
+  box-shadow: 0 1px 3px rgba(0,0,0,.08);
+  transition: background .15s, color .15s;
+}
+.panel-lang-btn:hover { color: var(--c-text); }
+.panel-lang-btn.active { background: var(--epfl-red); color: white; }
+
 .panel-suggest-btn {
   display: block; margin-top: 10px;
   text-align: center;
@@ -673,11 +689,12 @@ html, body {
   .header-count       { display: none; }
   .header-share-btn   { display: none; }
   .header-suggest-btn { display: none; }
-  .lang-switcher      { display: none; }
+  #lang-switcher      { display: none; }   /* hidden in header on mobile — shown in drawer footer instead */
   .header-search-wrap { display: none; }   /* hidden — panel drawer has search instead */
   .filterbar-label    { display: none; }
   .filterbar          { padding: 0 12px; }
   .view-btn span      { display: none; }
+  .panel-footer-lang  { display: flex; }   /* show lang switcher in drawer footer on mobile */
 
   /* Panel becomes bottom drawer */
   .panel {

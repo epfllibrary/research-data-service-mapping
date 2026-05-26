@@ -200,5 +200,13 @@
     flyToAndShow,
     resetView,
     invalidateSize() { if (map) map.invalidateSize(); },
+    refreshOpenPopup(idx) {
+      const marker = markers[idx];
+      if (!marker || !map) return;
+      if (marker.isPopupOpen()) {
+        marker.unbindPopup();
+        marker.bindPopup(window.UIModule.buildPopupHTML(idx), POPUP_OPTIONS).openPopup();
+      }
+    },
   };
 })();

@@ -151,6 +151,9 @@ function restoreURLState() {
     document.querySelectorAll("[data-lang]").forEach(btn => {
       btn.classList.toggle("active", btn.dataset.lang === lang);
     });
+    document.querySelectorAll(".panel-lang-btn").forEach(btn => {
+      btn.classList.toggle("active", btn.dataset.lang === lang);
+    });
     applyI18n();
   }
 
@@ -689,13 +692,28 @@ function resetAll() {
 
 // ── Language toggle ────────────────────────────────────────────────────────
 function setupLangToggle() {
+  function syncLangButtons(lang) {
+    document.querySelectorAll("[data-lang]").forEach(b => {
+      b.classList.toggle("active", b.dataset.lang === lang);
+    });
+    document.querySelectorAll(".panel-lang-btn").forEach(b => {
+      b.classList.toggle("active", b.dataset.lang === lang);
+    });
+  }
+
   document.querySelectorAll("[data-lang]").forEach(btn => {
     btn.addEventListener("click", () => {
       const lang = btn.dataset.lang;
       i18n.setLang(lang);
-      document.querySelectorAll("[data-lang]").forEach(b => {
-        b.classList.toggle("active", b.dataset.lang === lang);
-      });
+      syncLangButtons(lang);
+    });
+  });
+
+  document.querySelectorAll(".panel-lang-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const lang = btn.dataset.lang;
+      i18n.setLang(lang);
+      syncLangButtons(lang);
     });
   });
 }
@@ -742,6 +760,12 @@ function init() {
     renderList();
     if (activeView === "kanban") renderKanban();
     if (activeView === "units") renderUnits();
+    // Re-render detail panel if open
+    if (activeDetail !== null) renderDetailPanel(activeDetail);
+    // Re-render open map popup if any
+    if (activeIdx !== null && window.MapModule) {
+      window.MapModule.refreshOpenPopup(activeIdx);
+    }
   });
   setupLangToggle();
   renderList();
