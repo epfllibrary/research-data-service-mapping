@@ -86,7 +86,28 @@ html, body {
 
 .header-spacer { flex: 1; }
 
-/* ── View switcher ────────────────────────────────────────────────────────── */
+/* ── Language select ──────────────────────────────────────────────────────── */
+.lang-select {
+  font-family: "Suisse Int'l", Arial, sans-serif;
+  font-size: 12px; font-weight: 600;
+  color: var(--c-text);
+  background: var(--epfl-gray-100);
+  border: 1px solid var(--c-border);
+  border-radius: 2px;
+  padding: 5px 24px 5px 10px;
+  cursor: pointer; outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23888' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  transition: border-color .15s, background-color .15s;
+  flex-shrink: 0;
+}
+.lang-select:hover { border-color: var(--epfl-red); }
+.lang-select:focus { border-color: var(--epfl-canard); }
+
+
 .view-switcher {
   display: flex; gap: 2px;
   background: var(--epfl-gray-100);
@@ -205,13 +226,13 @@ html, body {
   box-shadow: 0 2px 8px rgba(0,0,0,.12);
 }
 .legend-title {
-  font-size: 9px; font-weight: 700;
+  font-size: 12px; font-weight: 700;
   text-transform: uppercase; letter-spacing: 0.06em;
   color: var(--c-muted); margin-bottom: 7px;
 }
 .legend-item {
   display: flex; align-items: center; gap: 7px;
-  font-size: 10px; color: var(--c-text);
+  font-size: 12px; color: var(--c-text);
   margin-bottom: 4px; cursor: pointer; transition: opacity .15s;
 }
 .legend-item:last-child { margin-bottom: 0; }
@@ -689,7 +710,8 @@ html, body {
   .header-count       { display: none; }
   .header-share-btn   { display: none; }
   .header-suggest-btn { display: none; }
-  #lang-switcher      { display: none; }   /* hidden in header on mobile — shown in drawer footer instead */
+  #lang-switcher      { display: none; }
+  .lang-select        { display: none; }   /* hidden on mobile — drawer buttons used instead */
   .header-search-wrap { display: none; }   /* hidden — panel drawer has search instead */
   .filterbar-label    { display: none; }
   .filterbar          { padding: 0 12px; }

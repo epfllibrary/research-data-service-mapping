@@ -89,11 +89,13 @@ function esc(str) {
 }
 
 // Returns the localised description for a service row.
-// Falls back to French description if EN is empty.
+// Falls back to FR description if no specific translation exists.
 function serviceDesc(s) {
-  if (i18n.lang === "en" && s.Description_EN && s.Description_EN.trim()) {
-    return s.Description_EN.trim();
-  }
+  if (i18n.lang === "en" && s.Description_EN && s.Description_EN.trim()) return s.Description_EN.trim();
+  if (i18n.lang === "de" && s.Description_DE && s.Description_DE.trim()) return s.Description_DE.trim();
+  if (i18n.lang === "it" && s.Description_IT && s.Description_IT.trim()) return s.Description_IT.trim();
+  // Fallback: EN if available, then FR
+  if (s.Description_EN && s.Description_EN.trim()) return s.Description_EN.trim();
   return s.Description || "";
 }
 
@@ -146,11 +148,10 @@ function restoreURLState() {
 
   // Restore language first so everything renders in the right lang
   const lang = params.get("lang");
-  if (lang === "en" || lang === "fr") {
+  if (["fr", "en", "de", "it"].includes(lang)) {
     i18n.setLang(lang);
-    document.querySelectorAll("[data-lang]").forEach(btn => {
-      btn.classList.toggle("active", btn.dataset.lang === lang);
-    });
+    const sel = document.getElementById("lang-select");
+    if (sel) sel.value = lang;
     document.querySelectorAll(".panel-lang-btn").forEach(btn => {
       btn.classList.toggle("active", btn.dataset.lang === lang);
     });
@@ -692,28 +693,37 @@ function resetAll() {
 
 // ── Language toggle ────────────────────────────────────────────────────────
 function setupLangToggle() {
-  function syncLangButtons(lang) {
-    document.querySelectorAll("[data-lang]").forEach(b => {
+  const LANGS = ["fr", "en", "de", "it"];
+
+  function syncAll(lang) {
+    // Sync header select
+    const sel = document.getElementById("lang-select");
+    if (sel) sel.value = lang;
+    // Sync drawer buttons
+    document.querySelectorAll(".panel-lang-btn").forEach(b => {
       b.classList.toggle("active", b.dataset.lang === lang);
     });
-    document.querySelectorAll(".panel-lang-btn").forEach(b => {
+    // Sync legacy [data-lang] buttons if any remain
+    document.querySelectorAll("[data-lang]").forEach(b => {
       b.classList.toggle("active", b.dataset.lang === lang);
     });
   }
 
-  document.querySelectorAll("[data-lang]").forEach(btn => {
-    btn.addEventListener("click", () => {
-      const lang = btn.dataset.lang;
-      i18n.setLang(lang);
-      syncLangButtons(lang);
+  // Header select
+  const sel = document.getElementById("lang-select");
+  if (sel) {
+    sel.addEventListener("change", () => {
+      i18n.setLang(sel.value);
+      syncAll(sel.value);
     });
-  });
+  }
 
+  // Drawer buttons
   document.querySelectorAll(".panel-lang-btn").forEach(btn => {
     btn.addEventListener("click", () => {
       const lang = btn.dataset.lang;
       i18n.setLang(lang);
-      syncLangButtons(lang);
+      syncAll(lang);
     });
   });
 }

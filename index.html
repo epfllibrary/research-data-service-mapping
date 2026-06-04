@@ -83,15 +83,13 @@
       </button>
     </div>
 
-    <!-- Language toggle -->
-    <div class="view-switcher" role="group" aria-label="Langue / Language" id="lang-switcher">
-      <button class="view-btn active" id="lang-btn-fr" data-lang="fr">
-        <span>FR</span>
-      </button>
-      <button class="view-btn" id="lang-btn-en" data-lang="en">
-        <span>EN</span>
-      </button>
-    </div>
+    <!-- Language selector -->
+    <select class="lang-select" id="lang-select" aria-label="Langue / Language">
+      <option value="fr">FR</option>
+      <option value="en">EN</option>
+      <option value="de">DE</option>
+      <option value="it">IT</option>
+    </select>
 
     <button class="header-share-btn" id="share-view-btn" title="Partager cette vue" data-i18n="header.share">
       ↗ Partager cette vue
@@ -226,6 +224,8 @@
         <div class="panel-footer-lang" id="panel-lang-switcher">
           <button class="panel-lang-btn active" data-lang="fr">FR</button>
           <button class="panel-lang-btn" data-lang="en">EN</button>
+          <button class="panel-lang-btn" data-lang="de">DE</button>
+          <button class="panel-lang-btn" data-lang="it">IT</button>
         </div>
         <div class="panel-footer-initiative" data-i18n="footer.initiative">
           Une initiative de la <strong>Research Data Management Team</strong> financée par Swiss Universities et EPFL Library
