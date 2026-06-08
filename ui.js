@@ -56,7 +56,9 @@ function primaryPhase(phase) {
 
 function planUrl(office) {
   if (!office) return null;
-  return `https://plan.epfl.ch/?room==${encodeURIComponent(office)}`;
+  const base = window.RDSN_CONFIG.institution.campusPlanUrl;
+  if (!base) return null;
+  return base + encodeURIComponent(office);
 }
 
 function phaseTagHTML(label, color) {
@@ -405,7 +407,7 @@ function renderList() {
         <div class="empty-icon">⌕</div>
         <div class="empty-title">${t("empty.title")}</div>
         <div class="empty-sub">${t("empty.sub")}</div>
-        <a href="mailto:researchdata@epfl.ch" class="empty-link">researchdata@epfl.ch</a>
+        <a href="mailto:${window.RDSN_CONFIG.institution.contactEmail}" class="empty-link">${window.RDSN_CONFIG.institution.contactEmail}</a>
       </div>`;
     return;
   }
@@ -757,12 +759,109 @@ function applyI18n() {
   if (suggestBtn) {
     const subj = i18n.t("header.suggest.mailto.subject");
     const body = i18n.t("header.suggest.mailto.body");
-    suggestBtn.href = `mailto:researchdata@epfl.ch?subject=${subj}&body=${body}`;
+    suggestBtn.href = `mailto:${window.RDSN_CONFIG.institution.contactEmail}?subject=${subj}&body=${body}`;
   }
 }
 
-// ── Init ───────────────────────────────────────────────────────────────────
+// ── Bootstrap config into the DOM ──────────────────────────────────────────
+function applyConfig() {
+  const cfg = window.RDSN_CONFIG;
+  // Inject CSS custom properties from config.colors into :root
+  const c = cfg.colors || {};
+  const styleEl = document.createElement("style");
+  styleEl.id = "rdsn-brand-vars";
+  styleEl.textContent = [
+    ":root {",
+    `  --brand-accent:      ${c.accent      || "#FF0000"};`,
+    `  --brand-accent-dark: ${c.accentDark  || "#B51F1F"};`,
+    `  --brand-teal:        ${c.teal        || "#00A79F"};`,
+    `  --brand-teal-mid:    ${c.tealMid     || "#007480"};`,
+    `  --brand-teal-dark:   ${c.tealDark    || "#004248"};`,
+    `  --brand-text:        ${c.text        || "#413D3A"};`,
+    `  --brand-white:       ${c.white       || "#FFFFFF"};`,
+    `  --brand-muted:       ${c.muted       || "#CAC7C7"};`,
+    `  --brand-gray-100:    ${c.gray100     || "#EDEDED"};`,
+    `  --brand-gray-200:    ${c.gray200     || "#D5D5D5"};`,
+    `  --brand-gray-500:    ${c.gray500     || "#8E8E8E"};`,
+    `  --brand-gray-600:    ${c.gray600     || "#707070"};`,
+    `  --phase-planning-color:   ${c.phase2Color || "#5C2483"};`,
+    `  --phase-collection-color: ${c.tealMid     || "#007480"};`,
+    `  --phase-processing-color: ${c.teal        || "#00A79F"};`,
+    `  --phase-store-color:      ${c.phase1Color || "#EC6608"};`,
+    `  --phase-publish-color:    ${c.accent      || "#FF0000"};`,
+    `  --phase-archive-color:    ${c.tealDark    || "#004248"};`,
+    `  --phase-reuse-color:      ${c.phase3Color || "#4F8FCC"};`,
+    "}"
+  ].join("\n");
+  document.head.appendChild(styleEl);
+
+
+  // Favicon
+  const color = encodeURIComponent(cfg.branding.faviconColor);
+  const text  = encodeURIComponent(cfg.branding.faviconText);
+  const svg   = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='${color}'/><text x='16' y='22' font-family='Arial Black,Arial' font-weight='900' font-size='13' fill='white' text-anchor='middle'>${text}</text></svg>`;
+  const favicon = document.getElementById("favicon");
+  if (favicon) favicon.href = `data:image/svg+xml,${svg}`;
+
+  // Loading text
+  const loadingText = document.getElementById("loading-text");
+  if (loadingText) loadingText.textContent = cfg.branding.loadingText;
+
+  // Logo
+  const logo = document.getElementById("site-logo");
+  if (logo) {
+    if (cfg.institution.logo) {
+      logo.src = cfg.institution.logo;
+      logo.alt = cfg.institution.logoAlt || "";
+      logo.style.display = "";
+    } else {
+      logo.style.display = "none";
+    }
+  }
+
+  // Page title & meta
+  const titleStr = `Research Data Services Network — ${cfg.institution.name}`;
+  document.title = titleStr;
+  const metaDesc  = document.querySelector('meta[name="description"]');
+  const ogTitle   = document.querySelector('meta[property="og:title"]');
+  const ogDesc    = document.querySelector('meta[property="og:description"]');
+  if (metaDesc) metaDesc.setAttribute("content", `Interactive map of research data services on the ${cfg.institution.name} campus.`);
+  if (ogTitle)  ogTitle.setAttribute("content",  titleStr);
+  if (ogDesc)   ogDesc.setAttribute("content",   `Interactive map of research data services on the ${cfg.institution.name} campus.`);
+
+  // Footer initiative text (lang-aware)
+  function updateFooter(lang) {
+    const el = document.getElementById("footer-initiative");
+    if (el) el.innerHTML = (cfg.footer && cfg.footer[lang]) || cfg.footer?.en || "";
+    const contactEl  = document.getElementById("footer-contact");
+    const email      = cfg.institution.contactEmail;
+    if (contactEl && email) {
+      contactEl.href        = `mailto:${email}`;
+      contactEl.textContent = email;
+    }
+  }
+  updateFooter(i18n.getLang());
+  i18n.onChange(updateFooter);
+
+  // Language selector: hide unavailable langs
+  const availableLangs = cfg.ui.availableLangs || ["fr", "en", "de", "it"];
+  document.querySelectorAll("#lang-select option").forEach(opt => {
+    opt.style.display = availableLangs.includes(opt.value) ? "" : "none";
+  });
+  document.querySelectorAll(".panel-lang-btn").forEach(btn => {
+    btn.style.display = availableLangs.includes(btn.dataset.lang) ? "" : "none";
+  });
+
+  // Set default lang if not overridden by URL
+  const urlLang = new URLSearchParams(window.location.search).get("lang");
+  if (!urlLang && cfg.ui.defaultLang) {
+    i18n.setLang(cfg.ui.defaultLang);
+  }
+}
+
+
 function init() {
+  applyConfig();
   // Apply translations to static DOM before anything else
   applyI18n();
   i18n.onChange(() => {

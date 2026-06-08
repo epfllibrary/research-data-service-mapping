@@ -13,7 +13,8 @@
 
   // ── Map init ──────────────────────────────────────────────────────────────
   function initMap() {
-    map = L.map("map", { center: [46.5194, 6.5665], zoom: 16, zoomControl: true });
+    const cfg = window.RDSN_CONFIG.map;
+    map = L.map("map", { center: cfg.center, zoom: cfg.zoom, zoomControl: true });
 
     L.tileLayer("https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png", {
       attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
@@ -28,7 +29,7 @@
         const count = cluster.getChildCount();
         const size  = count > 20 ? 46 : count > 10 ? 40 : 34;
         return L.divIcon({
-          html:      `<div class="marker-cluster-epfl" style="width:${size}px;height:${size}px">${count}</div>`,
+          html:      `<div class="marker-cluster-custom" style="width:${size}px;height:${size}px">${count}</div>`,
           iconSize:  [size, size], iconAnchor: [size / 2, size / 2], className: "",
         });
       },
@@ -189,8 +190,9 @@
 
   // ── Reset to default campus view ──────────────────────────────────────────
   function resetView() {
+    const cfg = window.RDSN_CONFIG.map;
     applyVisibility(window.UIModule.isVisible);
-    map.flyTo([46.5194, 6.5665], 16, { duration: 0.6 });
+    map.flyTo(cfg.center, cfg.zoom, { duration: 0.6 });
   }
 
   // ── Public API ────────────────────────────────────────────────────────────

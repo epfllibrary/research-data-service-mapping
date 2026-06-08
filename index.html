@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Research Data Services Network — EPFL</title>
-  <meta name="description" content="Carte interactive des services de données de recherche disponibles sur le campus EPFL.">
-  <meta property="og:title"       content="EPFL Research Data Services Network">
-  <meta property="og:description" content="Carte interactive des services de données de recherche sur le campus EPFL.">
+  <title>Research Data Services Network</title>
+  <meta name="description" content="Interactive map of research data services available on campus.">
+  <meta property="og:title"       content="Research Data Services Network">
+  <meta property="og:description" content="Interactive map of research data services on campus.">
   <meta property="og:type"        content="website">
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='%23FF0000'/><text x='16' y='22' font-family='Arial Black,Arial' font-weight='900' font-size='13' fill='white' text-anchor='middle'>RD</text></svg>">
+  <link rel="icon" id="favicon" type="image/svg+xml">
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
@@ -23,7 +23,7 @@
 </noscript>
 
 <div class="loading-overlay" id="loading">
-  <div class="loading-epfl">EPFL</div>
+  <div class="loading-institution" id="loading-text">…</div>
   <div class="loading-text" data-i18n="loading.text">Chargement des services…</div>
 </div>
 
@@ -39,7 +39,7 @@
   <header class="header">
     <div class="header-logo">
       <a href="#" onclick="UIModule.resetAll(); return false;" aria-label="Retour à l'accueil">
-        <img src="EPFL-caution-RDSN_red-black.png" alt="EPFL Research Data Support Network" class="logo-rdsn-img">
+        <img id="site-logo" src="" alt="" class="logo-rdsn-img">
       </a>
     </div>
 
@@ -95,7 +95,7 @@
       ↗ Partager cette vue
     </button>
 
-    <a href="mailto:researchdata@epfl.ch?subject=Suggestion%20de%20service%20RDSN&body=Bonjour%2C%0A%0AJe%20souhaite%20signaler%20un%20service%20manquant%20%3A%0A%0ANom%20du%20service%20%3A%0AUnit%C3%A9%20%3A%0AContact%20%3A%0AURL%20%3A%0A%0AMerci%20!" class="header-suggest-btn" data-i18n="header.suggest">
+    <a href="#" class="header-suggest-btn" data-i18n="header.suggest">
       + Suggérer un service
     </a>
 
@@ -227,17 +227,16 @@
           <button class="panel-lang-btn" data-lang="de">DE</button>
           <button class="panel-lang-btn" data-lang="it">IT</button>
         </div>
-        <div class="panel-footer-initiative" data-i18n="footer.initiative">
-          Une initiative de la <strong>Research Data Management Team</strong> financée par Swiss Universities et EPFL Library
-        </div>
+        <div class="panel-footer-initiative" id="footer-initiative"></div>
         <div class="panel-footer-contact">
-          <a href="mailto:researchdata@epfl.ch">researchdata@epfl.ch</a>
+          <a id="footer-contact" href="#"></a>
         </div>
       </footer>
     </aside>
   </div>
 </div>
 
+<script src="config.js"></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js"></script>

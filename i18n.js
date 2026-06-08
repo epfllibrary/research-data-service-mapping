@@ -49,7 +49,7 @@
       "detail.not.found":   "Service introuvable.",
 
       // Popup (map)
-      "popup.plan":     "Voir sur le plan EPFL",
+      "popup.plan":     "Voir sur le plan du campus",
       "popup.plan.link": "voir sur le plan ↗",
       "popup.access":   "Accéder au service →",
       "popup.detail":   "Voir la fiche complète",
@@ -102,12 +102,12 @@
       "noscript": "JavaScript est requis pour afficher cette carte interactive.",
 
       // Page meta
-      "meta.title":       "Research Data Services Network — EPFL",
-      "meta.description": "Carte interactive des services de données de recherche disponibles sur le campus EPFL.",
-      "meta.og.title":    "EPFL Research Data Services Network",
-      "meta.og.desc":     "Carte interactive des services de données de recherche sur le campus EPFL.",
+      "meta.title":       "Research Data Services Network",
+      "meta.description": "Carte interactive des services de données de recherche disponibles sur le campus.",
+      "meta.og.title":    "Research Data Services Network",
+      "meta.og.desc":     "Carte interactive des services de données de recherche sur le campus.",
 
-      "footer.initiative": "Une initiative de la <strong>Research Data Management Team</strong> financée par Swiss Universities et EPFL Library",
+      "footer.initiative": "",
 
       // Mobile drawer
       "drawer.toggle.aria": "Afficher la liste des services",
@@ -117,7 +117,7 @@
       "panel.search.aria":        "Rechercher un service",
 
       // Map aria
-      "map.aria": "Carte du campus EPFL avec les services de données de recherche",
+      "map.aria": "Carte du campus avec les services de données de recherche",
       "kanban.container.aria": "Vue cycle de vie des données",
       "units.container.aria":  "Vue par unité",
       "detail.panel.aria":     "Fiche service",
@@ -172,7 +172,7 @@
       "detail.not.found":   "Service not found.",
 
       // Popup (map)
-      "popup.plan":      "View on EPFL map",
+      "popup.plan":      "View on campus map",
       "popup.plan.link": "view on map ↗",
       "popup.access":    "Access service →",
       "popup.detail":    "View full details",
@@ -225,16 +225,16 @@
       "noscript": "JavaScript is required to display this interactive map.",
 
       // Footer
-      "footer.initiative": "An initiative of the <strong>Research Data Management Team</strong> funded by Swiss Universities and EPFL Library",
+      "footer.initiative": "",
 
       // Mobile drawer
       "drawer.toggle.aria": "Show service list",
 
       // Page meta
-      "meta.title":       "Research Data Services Network — EPFL",
-      "meta.description": "Interactive map of research data services available on the EPFL campus.",
-      "meta.og.title":    "EPFL Research Data Services Network",
-      "meta.og.desc":     "Interactive map of research data services on the EPFL campus.",
+      "meta.title":       "Research Data Services Network",
+      "meta.description": "Interactive map of research data services available on the campus.",
+      "meta.og.title":    "Research Data Services Network",
+      "meta.og.desc":     "Interactive map of research data services on the campus.",
 
 
       // Search panel (mobile)
@@ -242,7 +242,7 @@
       "panel.search.aria":        "Search for a service",
 
       // Map aria
-      "map.aria": "Map of the EPFL campus with research data services",
+      "map.aria": "Campus map with research data services",
       "kanban.container.aria": "Data lifecycle view",
       "units.container.aria":  "By unit view",
       "detail.panel.aria":     "Service details",
@@ -282,7 +282,7 @@
       "detail.copy.link": "⧉ Link kopieren",
       "detail.link.copied": "✓ Link kopiert!",
       "detail.not.found": "Dienst nicht gefunden.",
-      "popup.plan": "Auf EPFL-Karte ansehen",
+      "popup.plan": "Auf Campus-Karte ansehen",
       "popup.plan.link": "auf Karte ansehen ↗",
       "popup.access": "Dienst aufrufen →",
       "popup.detail": "Vollständige Details ansehen",
@@ -319,15 +319,15 @@
       "loading.text": "Dienste werden geladen…",
       "error.csv": "Datei <code>services.csv</code> konnte nicht geladen werden. Stellen Sie sicher, dass die Datei im selben Ordner wie <code>index.html</code> liegt und ein HTTP-Server verwendet wird (nicht <code>file://</code>).",
       "noscript": "JavaScript ist erforderlich, um diese interaktive Karte anzuzeigen.",
-      "footer.initiative": "Eine Initiative des <strong>Research Data Management Teams</strong>, finanziert von Swiss Universities und der EPFL-Bibliothek",
+      "footer.initiative": "",
       "drawer.toggle.aria": "Dienstliste anzeigen",
-      "meta.title": "Research Data Services Network — EPFL",
-      "meta.description": "Interaktive Karte der Forschungsdatendienste auf dem EPFL-Campus.",
-      "meta.og.title": "EPFL Research Data Services Network",
-      "meta.og.desc": "Interaktive Karte der Forschungsdatendienste auf dem EPFL-Campus.",
+      "meta.title": "Research Data Services Network",
+      "meta.description": "Interaktive Karte der Forschungsdatendienste auf dem Campus.",
+      "meta.og.title": "Research Data Services Network",
+      "meta.og.desc": "Interaktive Karte der Forschungsdatendienste auf dem Campus.",
       "panel.search.placeholder": "Dienst, Einheit suchen…",
       "panel.search.aria": "Dienst suchen",
-      "map.aria": "Karte des EPFL-Campus mit Forschungsdatendiensten",
+      "map.aria": "Campus-Karte mit Forschungsdatendiensten",
       "kanban.container.aria": "Datenlebenszyklusansicht",
       "units.container.aria": "Ansicht nach Einheit",
       "detail.panel.aria": "Dienstinformationen",
@@ -368,7 +368,7 @@
       "detail.copy.link": "⧉ Copia link",
       "detail.link.copied": "✓ Link copiato!",
       "detail.not.found": "Servizio non trovato.",
-      "popup.plan": "Vedi sulla mappa EPFL",
+      "popup.plan": "Vedi sulla mappa del campus",
       "popup.plan.link": "vedi sulla mappa ↗",
       "popup.access": "Accedi al servizio →",
       "popup.detail": "Vedi scheda completa",
@@ -405,15 +405,15 @@
       "loading.text": "Caricamento dei servizi…",
       "error.csv": "Impossibile caricare <code>services.csv</code>. Assicurarsi che il file si trovi nella stessa cartella di <code>index.html</code> e che si utilizzi un server HTTP (non <code>file://</code>).",
       "noscript": "JavaScript è necessario per visualizzare questa mappa interattiva.",
-      "footer.initiative": "Un'iniziativa del <strong>Research Data Management Team</strong> finanziata da Swiss Universities e dalla Biblioteca EPFL",
+      "footer.initiative": "",
       "drawer.toggle.aria": "Mostra elenco servizi",
-      "meta.title": "Research Data Services Network — EPFL",
-      "meta.description": "Mappa interattiva dei servizi per i dati di ricerca disponibili sul campus EPFL.",
-      "meta.og.title": "EPFL Research Data Services Network",
-      "meta.og.desc": "Mappa interattiva dei servizi per i dati di ricerca sul campus EPFL.",
+      "meta.title": "Research Data Services Network",
+      "meta.description": "Mappa interattiva dei servizi per i dati di ricerca disponibili sul campus.",
+      "meta.og.title": "Research Data Services Network",
+      "meta.og.desc": "Mappa interattiva dei servizi per i dati di ricerca sul campus.",
       "panel.search.placeholder": "Cerca un servizio, unità…",
       "panel.search.aria": "Cerca un servizio",
-      "map.aria": "Mappa del campus EPFL con i servizi per i dati di ricerca",
+      "map.aria": "Mappa del campus con i servizi per i dati di ricerca",
       "kanban.container.aria": "Vista ciclo di vita dei dati",
       "units.container.aria": "Vista per unità",
       "detail.panel.aria": "Scheda servizio",
