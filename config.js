@@ -67,7 +67,7 @@ window.RDSN_CONFIG = {
     // → faviconColor: background color of the favicon (any CSS hex color).
     // → faviconText:  1–2 letters shown on the favicon.
     faviconColor: "#FF0000",
-    faviconText:  "RDSN",
+    faviconText:  "RD",
 
     // Loading screen text (the large word shown while the map loads).
     // Usually your institution's short name.
@@ -90,10 +90,10 @@ window.RDSN_CONFIG = {
     accentDark: "#B51F1F",  // darker variant, used for hover states
 
     // Secondary color family (used for "collection", "processing", "archive" phases).
-    // → A teal/green family works well here; replace with your secondary brand color.
-    teal:       "#00A79F",
-    tealMid:    "#007480",
-    tealDark:   "#004248",
+    // → Use your institution's secondary brand color here (e.g. a darker shade of your primary).
+    secondary:       "#00A79F",
+    secondaryMid:    "#007480",
+    secondaryDark:   "#004248",
 
     // Text and neutral colors — usually fine to leave as-is unless your brand
     // requires a specific dark color for text.
