@@ -27,7 +27,7 @@ window.RDSN_CONFIG = {
     // → Place your logo file in the same folder as index.html and update this path.
     // → Recommended: PNG or SVG, height around 60–80px, transparent background.
     // → Set to null to hide the logo entirely.
-    logo: "EPFL-caution-RDSN_red-black.png",
+    logo: "logo.png",
 
     // Alt text for the logo image (for screen readers).
     logoAlt: "EPFL Research Data Support Network",
