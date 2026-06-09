@@ -67,7 +67,7 @@ window.RDSN_CONFIG = {
     // → faviconColor: background color of the favicon (any CSS hex color).
     // → faviconText:  1–2 letters shown on the favicon.
     faviconColor: "#FF0000",
-    faviconText:  "RD",
+    faviconText:  "RDSN",
 
     // Loading screen text (the large word shown while the map loads).
     // Usually your institution's short name.
