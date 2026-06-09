@@ -14,14 +14,30 @@ This map lets researchers and staff discover research data support services avai
 
 ## Table of contents
 
-1. [Before you start](#1-before-you-start)
-2. [Fork the repository](#2-fork-the-repository)
-3. [Enable GitHub Pages](#3-enable-github-pages)
-4. [Customise your instance](#4-customise-your-instance)
-5. [Reference — config.js](#5-reference--configjs)
-6. [Reference — services.csv](#6-reference--servicescsv)
-7. [Troubleshooting](#7-troubleshooting)
-8. [License and attribution](#8-license-and-attribution)
+- [Research Data Services Network Map](#research-data-services-network-map)
+  - [What does this tool do?](#what-does-this-tool-do)
+  - [Table of contents](#table-of-contents)
+  - [1. Before you start](#1-before-you-start)
+  - [2. Fork the repository](#2-fork-the-repository)
+  - [3. Enable GitHub Pages](#3-enable-github-pages)
+  - [4. Customise your instance](#4-customise-your-instance)
+    - [Step 1 — Edit config.js](#step-1--edit-configjs)
+    - [Step 2 — Upload your logo](#step-2--upload-your-logo)
+    - [Step 3 — Replace the service data](#step-3--replace-the-service-data)
+  - [5. Reference — config.js](#5-reference--configjs)
+    - [`institution`](#institution)
+    - [`map`](#map)
+    - [`branding`](#branding)
+    - [`colors`](#colors)
+    - [`ui`](#ui)
+    - [`footer`](#footer)
+  - [6. Reference — services.csv](#6-reference--servicescsv)
+    - [Column descriptions](#column-descriptions)
+    - [Valid Phase values](#valid-phase-values)
+    - [Finding coordinates for your buildings](#finding-coordinates-for-your-buildings)
+  - [7. Troubleshooting](#7-troubleshooting)
+  - [8. License and attribution](#8-license-and-attribution)
+    - [Known deployments](#known-deployments)
 
 ---
 
@@ -129,12 +145,12 @@ Controls your institution's identity throughout the interface.
 
 | Key | Description | Example |
 |-----|-------------|---------|
-| `name` | Short name. Appears in the page title and accessibility labels. | `"University of Zurich"` |
-| `fullName` | Full name. Used in the browser tab title. | `"University of Zurich — UZH"` |
-| `logo` | Filename of your logo. Must be uploaded to the repository. Set to `null` to hide the logo. | `"uzh-logo.png"` |
-| `logoAlt` | Short description of the logo for screen readers. | `"University of Zurich logo"` |
-| `contactEmail` | Your team's email. Appears in the footer, the empty search result state, and the "Suggest a service" button. | `"rdm@uzh.ch"` |
-| `campusPlanUrl` | Base URL of your campus map. The office code from services.csv is appended to this. Set to `null` to hide office links. | `"https://campusmap.uzh.ch/?room="` |
+| `name` | Short name. Appears in the page title and accessibility labels. | `"University of .."` |
+| `fullName` | Full name. Used in the browser tab title. | `"University of .."` |
+| `logo` | Filename of your logo. Must be uploaded to the repository. Set to `null` to hide the logo. | `"..-logo.png"` |
+| `logoAlt` | Short description of the logo for screen readers. | `"University of .. logo"` |
+| `contactEmail` | Your team's email. Appears in the footer, the empty search result state, and the "Suggest a service" button. | `"rdm@university.ch"` |
+| `campusPlanUrl` | Base URL of your campus map. The office code from services.csv is appended to this. Set to `null` to hide office links. | `"https://campusmap.ch/?room="` |
 
 ---
 
@@ -156,8 +172,8 @@ Controls the small visual elements that identify your instance.
 | Key | Description | Example |
 |-----|-------------|---------|
 | `faviconColor` | Background color of the browser tab icon. | `"#3A7BD5"` |
-| `faviconText` | 1–2 letters shown on the browser tab icon. | `"RD"` |
-| `loadingText` | Word shown on the loading screen before the map appears. Usually your institution's short name. | `"UZH"` |
+| `faviconText` | Letters shown on the browser tab icon. | `"RDSN"` |
+| `loadingText` | Word shown on the loading screen before the map appears. Usually your institution's short name. | `"RDM"` |
 
 ---
 
@@ -212,9 +228,10 @@ Text shown at the bottom of the sidebar. Write one entry per language. Basic HTM
 
 ```js
 footer: {
-  en: "A service of the <strong>Research Data Team</strong> — University of Zurich",
-  fr: "Un service de l'<strong>équipe données de recherche</strong> — Université de Zurich",
-  de: "Ein Service des <strong>Forschungsdaten-Teams</strong> — Universität Zürich",
+  en: "A service of the <strong>Research Data Team</strong> — University of ..",
+  fr: "Un service de l'<strong>équipe données de recherche</strong> — Université de ..",
+  de: "Ein Service des <strong>Forschungsdaten-Teams</strong> — Universität ..",
+  it: "Un'iniziativa del <strong>Research Data Management Team</strong> - Universita",
 },
 ```
 
@@ -271,16 +288,6 @@ Planning & Design|Data Collection
 2. Navigate to the building where the service is located.
 3. Right-click on the building and select **"Show address"**. The coordinates appear at the bottom of the screen in the format `latitude, longitude`.
 4. Copy both values into the `Latitude` and `Longitude` columns of your CSV.
-
-### Tips for editing in Excel or LibreOffice
-
-- **Opening:** use **Data → From Text/CSV** (Excel) or the import dialog (LibreOffice) and select **semicolon** as the delimiter. Do not double-click the file — Excel may misinterpret it as comma-separated.
-- **Saving in Excel:** choose **Save As → CSV UTF-8 (Semicolon Delimited)**. If that option is not available, save as plain CSV and verify the separators manually in a text editor.
-- **Saving in LibreOffice:** click **Keep Current Format → Edit Filter Settings** and confirm the separator is a semicolon.
-- **Never use a semicolon inside a cell value** — it will break the column structure.
-- **Do not change the header row.** The map reads columns by their exact names.
-
----
 
 ## 7. Troubleshooting
 
