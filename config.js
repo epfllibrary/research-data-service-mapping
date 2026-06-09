@@ -18,10 +18,10 @@ window.RDSN_CONFIG = {
   institution: {
 
     // Short name of your institution, used in page titles and aria labels.
-    name: "EPFL",
+    name: "Institute",
 
     // Full name, used in the browser tab title.
-    fullName: "EPFL — École Polytechnique Fédérale de Lausanne",
+    fullName: "Institute full name",
 
     // Path to your logo image file.
     // → Place your logo file in the same folder as index.html and update this path.
@@ -30,17 +30,17 @@ window.RDSN_CONFIG = {
     logo: "logo.png",
 
     // Alt text for the logo image (for screen readers).
-    logoAlt: "EPFL Research Data Support Network",
+    logoAlt: "Alt text for logo",
 
     // Main contact email address.
     // Used in the footer, in the empty-state message, and in the "Suggest a service" button.
-    contactEmail: "researchdata@epfl.ch",
+    contactEmail: "service_mail@institute.ch",
 
     // URL of your institution's interactive campus map (used for office links in service cards).
     // The office room code from services.csv will be appended to this URL.
     // Example for EPFL: "https://plan.epfl.ch/?room=="
     // → Set to null to hide campus map links entirely.
-    campusPlanUrl: "https://plan.epfl.ch/?room==",
+    campusPlanUrl: "https://plan.institute.ch/?room==",
 
   },
 
@@ -67,11 +67,11 @@ window.RDSN_CONFIG = {
     // → faviconColor: background color of the favicon (any CSS hex color).
     // → faviconText:  1–2 letters shown on the favicon.
     faviconColor: "#FF0000",
-    faviconText:  "RDSN",
+    faviconText:  "RDM",
 
     // Loading screen text (the large word shown while the map loads).
     // Usually your institution's short name.
-    loadingText: "EPFL",
+    loadingText: "Institute shortname",
 
   },
 
@@ -119,7 +119,7 @@ window.RDSN_CONFIG = {
 
     // Default language shown on first visit.
     // Must be one of the values listed in availableLangs below.
-    defaultLang: "fr",
+    defaultLang: "en",
 
     // Languages shown in the language selector.
     // Remove any language you don't need. At minimum, keep one.
@@ -133,10 +133,10 @@ window.RDSN_CONFIG = {
   // You can use basic HTML like <strong>text</strong> for bold.
   // Write one entry per language — use the same language codes as ui.availableLangs.
   footer: {
-    fr: "Une initiative de la <strong>Research Data Management Team</strong> financée par Swiss Universities et EPFL Library",
-    en: "An initiative of the <strong>Research Data Management Team</strong> funded by Swiss Universities and EPFL Library",
-    de: "Eine Initiative des <strong>Research Data Management Teams</strong>, finanziert von Swiss Universities und der EPFL-Bibliothek",
-    it: "Un'iniziativa del <strong>Research Data Management Team</strong> finanziata da Swiss Universities e dalla Biblioteca EPFL",
+    fr: "Une initiative de la <strong>Your Team</strong>",
+    en: "An initiative of the <strong>Your Team</strong>",
+    de: "Eine Initiative des <strong>Your Team</strong>",
+    it: "Un'iniziativa del <strong>Your Team</strong>",
   },
 
 };
