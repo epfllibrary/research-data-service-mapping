@@ -133,10 +133,10 @@ window.RDSN_CONFIG = {
   // You can use basic HTML like <strong>text</strong> for bold.
   // Write one entry per language — use the same language codes as ui.availableLangs.
   footer: {
-    fr: "Une initiative de la <strong>Your Team</strong>",
-    en: "An initiative of the <strong>Your Team</strong>",
-    de: "Eine Initiative des <strong>Your Team</strong>",
-    it: "Un'iniziativa del <strong>Your Team</strong>",
+    fr: "Une initiative de la <strong>Your Team</strong>. Vous trouverez le code source du projet ici : https://doi.org/10.5281/zenodo.20611538 et https://github.com/epfllibrary/epfl-rdsn-map",
+    en: "An initiative of the <strong>Your Team</strong>. Find the source code of the project here: https://doi.org/10.5281/zenodo.20611538 and https://github.com/epfllibrary/epfl-rdsn-map",
+    de: "Eine Initiative des <strong>Your Team</strong>. Den Quellcode des Projekts findest du hier: https://doi.org/10.5281/zenodo.20611538 und https://github.com/epfllibrary/epfl-rdsn-map",
+    it: "Un'iniziativa del <strong>Your Team</strong>. Il codice sorgente del progetto è disponibile qui: https://doi.org/10.5281/zenodo.20611538 e https://github.com/epfllibrary/epfl-rdsn-map",
   },
 
 };

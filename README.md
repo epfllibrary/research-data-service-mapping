@@ -321,7 +321,7 @@ Open an issue on the [original repository](https://github.com/epfllibrary/epfl-r
 
 This project is published under the [MIT License](LICENSE). You are free to use, copy, modify, merge, publish, and distribute it — including for institutional or commercial purposes — provided you include the original copyright notice.
 
-We encourage you to keep a mention of the original project in your footer text, but this is not required.
+We encourage you to keep a mention of the original project in your footer text via Zenodo's DOI citation (Tremblay, C. (2026). Research Data Service Mapping Template (v1.0.0). Zenodo. https://doi.org/10.5281/zenodo.20611538) , but this is not required.
 
 If you adapt this map for your institution and would like to appear as a known deployment, open a pull request adding your institution's name and URL to this section.
 
