@@ -2,7 +2,7 @@
 
 An interactive campus map for visualising research data management services at your institution — filterable by lifecycle phase, searchable, multilingual, and deployable in minutes with no coding required.
 
-**Live example:** [EPFL RDSN Map](https://epfllibrary.github.io/epfl-rdsn-map/)
+**Live example:** [EPFL RDSN Map](https://go.epfl.ch/epfl-rdsn-map)
 
 ---
 
