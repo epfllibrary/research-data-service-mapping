@@ -327,4 +327,4 @@ If you adapt this map for your institution and would like to appear as a known d
 
 ### Known deployments
 
-- [EPFL](https://epfllibrary.github.io/epfl-rdsn-map/) — original project
+- [EPFL](https://go.epfl.ch/epfl-rdsn-map) — original project
