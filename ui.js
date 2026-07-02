@@ -753,17 +753,196 @@ function applyI18n() {
   document.querySelectorAll("[data-i18n-aria]").forEach(el => {
     el.setAttribute("aria-label", i18n.t(el.dataset.i18nAria));
   });
+}
 
-  // Update suggest mailto href with correct language content
-  const suggestBtn = document.querySelector(".header-suggest-btn");
-  if (suggestBtn) {
-    const subj = i18n.t("header.suggest.mailto.subject");
-    const body = i18n.t("header.suggest.mailto.body");
-    suggestBtn.href = `mailto:${window.RDSN_CONFIG.institution.contactEmail}?subject=${subj}&body=${body}`;
+// ── Suggest-a-service modal ────────────────────────────────────────────────
+// CSV column order must match services.csv header exactly.
+const SUGGEST_CSV_COLUMNS = [
+  "Service", "Unit", "Contact", "Audience", "Phase", "URL",
+  "Latitude", "Longitude", "Office",
+  "Description", "Description_EN", "Description_DE", "Description_IT",
+];
+
+// Escapes a value for the ";"-delimited CSV used by services.csv.
+// Wraps in double quotes (doubling any internal quotes) if the value
+// contains the delimiter, a quote, or a line break.
+function csvEscape(value) {
+  const v = (value || "").toString().trim();
+  if (/[;"\n\r]/.test(v)) {
+    return `"${v.replace(/"/g, '""')}"`;
+  }
+  return v;
+}
+
+// Maps the modal's active language to the matching CSV description column.
+function descriptionColumnForLang(lang) {
+  return { en: "Description_EN", de: "Description_DE", it: "Description_IT" }[lang] || "Description";
+}
+
+function readSuggestForm() {
+  const selected = Array.from(
+    document.querySelectorAll('#sf-phase-group .phase-chip[aria-pressed="true"]')
+  ).map(btn => btn.dataset.phase);
+
+  const data = {
+    Service:        document.getElementById("sf-service").value.trim(),
+    Unit:           document.getElementById("sf-unit").value.trim(),
+    Contact:        document.getElementById("sf-contact").value.trim(),
+    Audience:       document.getElementById("sf-audience").value.trim(),
+    Phase:          selected.join("|"),
+    URL:            document.getElementById("sf-url").value.trim(),
+    Latitude:       document.getElementById("sf-lat").value.trim(),
+    Longitude:      document.getElementById("sf-lng").value.trim(),
+    Office:         document.getElementById("sf-office").value.trim(),
+    Description:    "",
+    Description_EN: "",
+    Description_DE: "",
+    Description_IT: "",
+  };
+
+  const desc = document.getElementById("sf-desc").value.trim();
+  data[descriptionColumnForLang(i18n.lang)] = desc;
+  data._descriptionRaw = desc; // kept for validation/preview regardless of target column
+
+  return data;
+}
+
+function validateSuggestForm(data) {
+  return !!(data.Service && data.Unit && data.Phase && data._descriptionRaw);
+}
+
+function buildSuggestCSVLine(data) {
+  return SUGGEST_CSV_COLUMNS.map(col => csvEscape(data[col])).join(";");
+}
+
+function buildSuggestReadable(data) {
+  const t = k => i18n.t(k);
+  const lines = [
+    [t("suggest.label.service"),   data.Service],
+    [t("suggest.label.unit"),      data.Unit],
+    [t("suggest.label.contact"),   data.Contact],
+    [t("suggest.label.audience"),  data.Audience],
+    [t("suggest.label.phase"),     data.Phase],
+    [t("suggest.label.url"),       data.URL],
+    [t("suggest.label.latitude"),  data.Latitude],
+    [t("suggest.label.longitude"), data.Longitude],
+    [t("suggest.label.office"),    data.Office],
+    [`${t("suggest.label.description").replace(/\s*\*$/, "")} (${i18n.lang.toUpperCase()})`, data._descriptionRaw],
+  ];
+  return lines
+    .filter(([, value]) => value)
+    .map(([label, value]) => `${label.replace(/\s*\*$/, "")}: ${value}`)
+    .join("\n");
+}
+
+function updateSuggestPreview(data) {
+  const readable = buildSuggestReadable(data);
+  document.getElementById("suggest-preview-readable").textContent = readable;
+  document.getElementById("suggest-preview").classList.remove("hidden");
+  return { readable };
+}
+
+// ── Dedicated, self-contained translation pass for the modal only ─────────
+// Deliberately independent from the generic applyI18n() sweep so the modal's
+// language can never lag behind the page's active language, regardless of
+// call order elsewhere or browser caching of a stale script version.
+function translateSuggestModal() {
+  const modal = document.getElementById("suggest-modal");
+  if (!modal) return;
+  modal.querySelectorAll("[data-i18n]").forEach(el => {
+    const val = i18n.t(el.dataset.i18n);
+    if (el.children.length === 0) el.textContent = val;
+  });
+  modal.querySelectorAll("[data-i18n-aria]").forEach(el => {
+    el.setAttribute("aria-label", i18n.t(el.dataset.i18nAria));
+  });
+  modal.querySelectorAll("[data-i18n-placeholder]").forEach(el => {
+    el.placeholder = i18n.t(el.dataset.i18nPlaceholder);
+  });
+}
+
+function togglePhaseChip(btn) {
+  const pressed = btn.getAttribute("aria-pressed") === "true";
+  btn.setAttribute("aria-pressed", pressed ? "false" : "true");
+}
+
+function resetSuggestForm() {
+  document.getElementById("suggest-form").reset();
+  document.querySelectorAll('#sf-phase-group .phase-chip').forEach(btn => {
+    btn.setAttribute("aria-pressed", "false");
+  });
+}
+
+function openSuggestModal() {
+  translateSuggestModal();
+  document.getElementById("suggest-modal").classList.remove("hidden");
+  document.getElementById("suggest-modal-backdrop").classList.add("visible");
+  document.getElementById("suggest-form-error").classList.add("hidden");
+  document.getElementById("suggest-preview").classList.add("hidden");
+}
+
+function closeSuggestModal() {
+  document.getElementById("suggest-modal").classList.add("hidden");
+  document.getElementById("suggest-modal-backdrop").classList.remove("visible");
+}
+
+// ── Direct sending ──────────────────────────────────────────────────────────
+// The "Suggest a service" form sends via the visitor's mail client (mailto:).
+// This is intentional: the app is fully static with no backend, so there is
+// no server-side SMTP relay available.
+
+function setupSuggestModal() {
+  const openBtn  = document.getElementById("suggest-open-btn");
+  const closeBtn = document.getElementById("suggest-modal-close");
+  const backdrop = document.getElementById("suggest-modal-backdrop");
+  const sendBtn  = document.getElementById("suggest-send-btn");
+  const errorEl  = document.getElementById("suggest-form-error");
+
+  if (openBtn)  openBtn.addEventListener("click", openSuggestModal);
+  if (closeBtn) closeBtn.addEventListener("click", closeSuggestModal);
+  if (backdrop) backdrop.addEventListener("click", closeSuggestModal);
+
+  document.querySelectorAll('#sf-phase-group .phase-chip').forEach(btn => {
+    btn.addEventListener("click", () => togglePhaseChip(btn));
+  });
+
+  if (sendBtn) {
+    sendBtn.addEventListener("click", () => {
+      const data = readSuggestForm();
+      if (!validateSuggestForm(data)) {
+        errorEl.classList.remove("hidden");
+        document.getElementById("suggest-preview").classList.add("hidden");
+        return;
+      }
+      errorEl.classList.add("hidden");
+      updateSuggestPreview(data);
+
+      const t       = k => i18n.t(k);
+      const readable = buildSuggestReadable(data);
+      const csvLine  = buildSuggestCSVLine(data);
+      const body = [
+        t("suggest.mail.intro"),
+        "",
+        t("suggest.mail.section.readable"),
+        readable,
+        "",
+        t("suggest.mail.section.csv"),
+        csvLine,
+      ].join("\n");
+
+      const email = window.RDSN_CONFIG?.institution?.contactEmail || "";
+      if (!email) {
+        console.error("RDSN_CONFIG.institution.contactEmail is not set.");
+        return;
+      }
+
+      const subject = encodeURIComponent(t("suggest.mail.subject"));
+      window.location.href = `mailto:${email}?subject=${subject}&body=${encodeURIComponent(body)}`;
+    });
   }
 }
 
-// ── Bootstrap config into the DOM ──────────────────────────────────────────
+
 function applyConfig() {
   const cfg = window.RDSN_CONFIG;
   // Inject CSS custom properties from config.colors into :root
@@ -784,13 +963,13 @@ function applyConfig() {
     `  --brand-gray-200:    ${c.gray200     || "#D5D5D5"};`,
     `  --brand-gray-500:    ${c.gray500     || "#8E8E8E"};`,
     `  --brand-gray-600:    ${c.gray600     || "#707070"};`,
-    `  --phase-planning-color:   ${c.phase2Color || "#5C2483"};`,
-    `  --phase-collection-color: ${c.secondaryMid     || "#007480"};`,
-    `  --phase-processing-color: ${c.secondary        || "#00A79F"};`,
-    `  --phase-store-color:      ${c.phase1Color || "#EC6608"};`,
-    `  --phase-publish-color:    ${c.accent      || "#FF0000"};`,
-    `  --phase-archive-color:    ${c.secondaryDark    || "#004248"};`,
-    `  --phase-reuse-color:      ${c.phase3Color || "#4F8FCC"};`,
+    `  --phase-planning:   ${c.phase2Color || "#5C2483"};`,
+    `  --phase-collection: ${c.secondaryMid     || "#007480"};`,
+    `  --phase-processing: ${c.secondary        || "#00A79F"};`,
+    `  --phase-store:      ${c.phase1Color || "#EC6608"};`,
+    `  --phase-publish:    ${c.accent      || "#FF0000"};`,
+    `  --phase-archive:    ${c.secondaryDark    || "#004248"};`,
+    `  --phase-reuse:      ${c.phase3Color || "#4F8FCC"};`,
     "}"
   ].join("\n");
   document.head.appendChild(styleEl);
@@ -864,8 +1043,10 @@ function init() {
   applyConfig();
   // Apply translations to static DOM before anything else
   applyI18n();
+  translateSuggestModal();
   i18n.onChange(() => {
     applyI18n();
+    translateSuggestModal();
     renderList();
     if (activeView === "kanban") renderKanban();
     if (activeView === "units") renderUnits();
@@ -877,8 +1058,7 @@ function init() {
     }
   });
   setupLangToggle();
-  renderList();
-  restoreURLState();
+  setupSuggestModal();
 
   // Filter chips
   document.querySelectorAll(".filter-chip").forEach(btn => {
@@ -971,4 +1151,6 @@ window.UIModule = {
   closeDrawer,
   switchView,
   toggleFullscreen,
+  openSuggestModal,
+  closeSuggestModal,
 };

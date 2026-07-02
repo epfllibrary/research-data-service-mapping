@@ -95,9 +95,9 @@
       ↗ Partager cette vue
     </button>
 
-    <a href="#" class="header-suggest-btn" data-i18n="header.suggest">
+    <button type="button" class="header-suggest-btn" id="suggest-open-btn" data-i18n="header.suggest">
       + Suggérer un service
-    </a>
+    </button>
 
     <span class="header-count" id="header-count" aria-live="polite">— services</span>
     <!-- Mobile: open drawer -->
@@ -233,6 +233,118 @@
         </div>
       </footer>
     </aside>
+  </div>
+</div>
+
+<!-- ── Suggest a service — modal ──────────────────────────────────────────── -->
+<div class="modal-backdrop" id="suggest-modal-backdrop"></div>
+<div class="modal suggest-modal hidden" id="suggest-modal" role="dialog" aria-modal="true" data-i18n-aria="suggest.modal.aria">
+  <div class="modal-header">
+    <h2 data-i18n="suggest.modal.title">Suggérer un service</h2>
+    <button type="button" class="modal-close" id="suggest-modal-close" data-i18n-aria="suggest.modal.close.aria">✕</button>
+  </div>
+  <div class="modal-body">
+    <p class="modal-intro" data-i18n="suggest.modal.intro">
+      Décrivez le service à ajouter. Un e-mail pré-rempli sera préparé pour l'équipe RDM, avec un résumé lisible et une ligne prête à coller dans le fichier services.csv.
+    </p>
+    <form id="suggest-form" novalidate>
+      <div class="form-row">
+        <label for="sf-service" data-i18n="suggest.label.service">Nom du service *</label>
+        <input type="text" id="sf-service" autocomplete="off">
+      </div>
+      <div class="form-row">
+        <label for="sf-unit" data-i18n="suggest.label.unit">Unité *</label>
+        <input type="text" id="sf-unit" autocomplete="off">
+      </div>
+      <div class="form-row">
+        <label for="sf-contact" data-i18n="suggest.label.contact">Contact (e-mail)</label>
+        <input type="email" id="sf-contact" autocomplete="off">
+      </div>
+      <div class="form-row">
+        <label for="sf-audience" data-i18n="suggest.label.audience">Public concerné</label>
+        <select id="sf-audience">
+          <option value="" data-i18n="suggest.audience.placeholder">— Non précisé —</option>
+          <option value="Researchers" data-i18n="suggest.audience.researchers">Chercheurs</option>
+          <option value="Students" data-i18n="suggest.audience.students">Étudiants</option>
+        </select>
+      </div>
+
+      <div class="form-row">
+        <span class="form-group-label" data-i18n="suggest.label.phase">Phase(s) du cycle de vie *</span>
+        <div class="phase-chip-group" id="sf-phase-group" role="group" data-i18n-aria="suggest.label.phase">
+          <button type="button" class="phase-chip" data-phase="Planning & Design" aria-pressed="false">
+            <span class="phase-chip-dot" style="background:var(--phase-planning)"></span><span data-i18n="cycle.plan">Planification & Conception</span>
+          </button>
+          <button type="button" class="phase-chip" data-phase="Data Collection" aria-pressed="false">
+            <span class="phase-chip-dot" style="background:var(--phase-collection)"></span><span data-i18n="cycle.col">Collection des données</span>
+          </button>
+          <button type="button" class="phase-chip" data-phase="Processing & Analysis" aria-pressed="false">
+            <span class="phase-chip-dot" style="background:var(--phase-processing)"></span><span data-i18n="cycle.process">Processus & Analyses</span>
+          </button>
+          <button type="button" class="phase-chip" data-phase="Use & Store" aria-pressed="false">
+            <span class="phase-chip-dot" style="background:var(--phase-store)"></span><span data-i18n="cycle.store">Utilisation & Stockage</span>
+          </button>
+          <button type="button" class="phase-chip" data-phase="Publication & Sharing" aria-pressed="false">
+            <span class="phase-chip-dot" style="background:var(--phase-publish)"></span><span data-i18n="cycle.pub">Publication & Partage</span>
+          </button>
+          <button type="button" class="phase-chip" data-phase="Archiving" aria-pressed="false">
+            <span class="phase-chip-dot" style="background:var(--phase-archive)"></span><span data-i18n="cycle.arch">Archive</span>
+          </button>
+          <button type="button" class="phase-chip" data-phase="Discover & Reuse" aria-pressed="false">
+            <span class="phase-chip-dot" style="background:var(--phase-reuse)"></span><span data-i18n="cycle.disc">Découvrir & Réutiliser</span>
+          </button>
+          <button type="button" class="phase-chip" data-phase="All" aria-pressed="false">
+            <span class="phase-chip-dot phase-chip-dot-all"></span><span data-i18n="kanban.all.badge">Toutes phases</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <label for="sf-url" data-i18n="suggest.label.url">URL</label>
+        <input type="url" id="sf-url" autocomplete="off">
+      </div>
+
+      <div class="form-row form-row-half">
+        <div>
+          <label for="sf-lat" data-i18n="suggest.label.latitude">Latitude</label>
+          <input type="text" id="sf-lat" inputmode="decimal" autocomplete="off">
+        </div>
+        <div>
+          <label for="sf-lng" data-i18n="suggest.label.longitude">Longitude</label>
+          <input type="text" id="sf-lng" inputmode="decimal" autocomplete="off">
+        </div>
+      </div>
+      <p class="form-hint" data-i18n="suggest.coords.hint">
+        Facultatif. Laissez vide si vous ne connaissez pas les coordonnées — le service sera ajouté en liste uniquement.
+      </p>
+
+      <div class="form-row">
+        <label for="sf-office" data-i18n="suggest.label.office">Bureau / local</label>
+        <input type="text" id="sf-office" autocomplete="off">
+      </div>
+
+      <div class="form-row">
+        <label for="sf-desc" data-i18n="suggest.label.description">Description *</label>
+        <textarea id="sf-desc" rows="4"></textarea>
+        <p class="form-hint" data-i18n="suggest.desc.hint">
+          Rédigez dans la langue actuelle de la page. Les autres traductions seront ajoutées par l'équipe RDM.
+        </p>
+      </div>
+
+      <div class="form-error hidden" id="suggest-form-error" role="alert" data-i18n="suggest.error.required">
+        Merci de remplir les champs obligatoires (*).
+      </div>
+    </form>
+
+    <div class="suggest-preview hidden" id="suggest-preview">
+      <div class="suggest-preview-block">
+        <div class="suggest-preview-title" data-i18n="suggest.preview.title">Résumé</div>
+        <pre id="suggest-preview-readable"></pre>
+      </div>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="detail-btn-primary" id="suggest-send-btn" data-i18n="suggest.btn.send">Envoyer par e-mail →</button>
   </div>
 </div>
 
