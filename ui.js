@@ -90,6 +90,16 @@ function esc(str) {
     .replace(/'/g, "&#39;");
 }
 
+// Returns sorted array of indices in window.SERVICES that pass the current filter/search
+function getVisibleIndices() {
+  const services = window.SERVICES || [];
+  const indices = [];
+  for (let i = 0; i < services.length; i++) {
+    if (isVisible(services[i], i)) indices.push(i);
+  }
+  return indices;
+}
+
 // Returns the localised description for a service row.
 // Falls back to FR description if no specific translation exists.
 function serviceDesc(s) {
@@ -285,28 +295,42 @@ function closeDrawer() {
 }
 
 // ── Detail panel ───────────────────────────────────────────────────────────
+function updateActiveListItem(idx) {
+  document.querySelectorAll(".list-item").forEach(el => {
+    el.classList.toggle("active", parseInt(el.dataset.idx) === idx);
+  });
+}
+
 function openDetail(idx, mode = "open") {
+  if (!window.SERVICES || !window.SERVICES[idx]) return;
   const panel = document.getElementById("detail-panel");
 
   if (activeDetail === idx) {
-    activeDetail = null;
-    panel.classList.remove("open", "open-kanban");
-    pushURLState(null);
+    panel.focus();
     return;
   }
 
   activeDetail = idx;
   activeIdx    = idx;
   pushURLState(idx);
-  renderList();
+  updateActiveListItem(idx);
   renderDetailPanel(idx);
-  panel.classList.remove("open", "open-kanban");
-  panel.classList.add(mode);
+  updateDetailNav(idx);
+
+  if (!panel.classList.contains("open") && !panel.classList.contains("open-kanban")) {
+    panel.classList.add(mode);
+  } else if (!panel.classList.contains(mode)) {
+    panel.classList.remove("open", "open-kanban");
+    panel.classList.add(mode);
+  }
+
+  panel.focus();
 }
 
 function closeDetail() {
   if (activeDetail === null) return;
   activeDetail = null;
+  activeIdx    = null;
   document.getElementById("detail-panel").classList.remove("open", "open-kanban");
   pushURLState(null);
 }
@@ -316,11 +340,12 @@ function renderDetailPanel(idx) {
   if (!s) return;
 
   const t           = k => i18n.t(k);
-  const phases      = s.Phase.split(",").map(p => p.trim()).filter(Boolean);
-  const safeURL     = s.URL ? s.URL.replace(/'/g, "%27") : null;
+  const phases      = s.Phase.split("|").map(p => p.trim()).filter(Boolean);
+  const safeURL     = s.URL ? esc(s.URL.replace(/'/g, "%27")) : null;
   const shareURL    = `${window.location.origin}${window.location.pathname}?service=${encodeURIComponent(s.Service)}${i18n.lang !== "fr" ? "&lang=" + i18n.lang : ""}`;
   const safeShareURL = shareURL.replace(/'/g, "%27");
   const desc        = serviceDesc(s);
+  const officeURL   = s.Office ? planUrl(s.Office) : null;
 
   document.getElementById("detail-content").innerHTML = `
     <div class="detail-header">
@@ -336,7 +361,7 @@ function renderDetailPanel(idx) {
         <div class="detail-field">
           <div class="detail-field-label">${t("detail.field.office")}</div>
           <div class="detail-field-value">
-            <a href="${planUrl(s.Office)}" target="_blank">⌖ ${esc(s.Office)} — ${t("detail.plan")}</a>
+            ${officeURL ? `<a href="${officeURL}" target="_blank">⌖ ${esc(s.Office)} — ${t("detail.plan")}</a>` : `⌖ ${esc(s.Office)}`}
           </div>
         </div>` : ""}
       ${s.Contact ? `
@@ -358,11 +383,30 @@ function renderDetailPanel(idx) {
           ${t("detail.access")}
         </a>` : ""}
       <button class="detail-btn-secondary"
-        onclick="navigator.clipboard?.writeText('${safeShareURL}').then(()=>{this.textContent='${t("detail.link.copied")}';this.dataset.copied='1'});setTimeout(()=>{this.textContent='${t("detail.copy.link")}';delete this.dataset.copied},1500)">
+        onclick="navigator.clipboard?.writeText('${safeShareURL}').then(()=>{this.textContent='${t("detail.link.copied")}';this.dataset.copied='1';setTimeout(()=>{this.textContent='${t("detail.copy.link")}';delete this.dataset.copied},1500)}).catch(()=>{})">
         ${t("detail.copy.link")}
       </button>
     </div>
   `;
+}
+
+function updateDetailNav(idx) {
+  const prevBtn = document.getElementById("detail-prev");
+  const nextBtn = document.getElementById("detail-next");
+  const counter = document.getElementById("detail-nav-counter");
+  if (!prevBtn || !nextBtn || !counter) return;
+
+  const visible = getVisibleIndices();
+  const pos = visible.indexOf(idx);
+
+  prevBtn.disabled = pos <= 0;
+  nextBtn.disabled = pos === -1 || pos >= visible.length - 1;
+
+  if (pos !== -1) {
+    counter.textContent = `${pos + 1}/${visible.length}`;
+  } else {
+    counter.textContent = "";
+  }
 }
 
 function getFilterLabel() {
@@ -373,9 +417,10 @@ function getFilterLabel() {
 
 // ── List rendering ─────────────────────────────────────────────────────────
 function renderList() {
+  const list     = document.getElementById("panel-list");
+  const savedScrollTop = list ? list.scrollTop : 0;
   const t        = k => i18n.t(k);
   const services = window.SERVICES || [];
-  const list     = document.getElementById("panel-list");
   const countEl  = document.getElementById("panel-count-num");
   const labelEl  = document.getElementById("panel-count-text");
   const visible  = services.filter((s, i) => isVisible(s, i));
@@ -422,12 +467,13 @@ function renderList() {
       : "";
 
     return `<div
-      class="list-item ${activeIdx === idx ? "active" : ""}"
+      class="list-item${activeIdx === idx ? " active" : ""}"
+      data-idx="${idx}"
       role="listitem"
       tabindex="0"
       aria-label="${esc(s.Service)}, ${esc(s.Unit)}"
       onclick="UIModule.selectFromList(${idx})"
-      onkeydown="if(event.key==='Enter')UIModule.selectFromList(${idx})"
+      onkeydown="if(event.key==='Enter'||event.key===' ')UIModule.selectFromList(${idx})"
     >
       <div class="item-name">${esc(s.Service)}</div>
       <div class="item-meta">
@@ -437,6 +483,13 @@ function renderList() {
       ${phaseTagHTML(tag, color)}
     </div>`;
   }).join("");
+
+  // Restore scroll position, clamped to new bounds
+  requestAnimationFrame(() => {
+    if (list) {
+      list.scrollTop = Math.min(savedScrollTop, list.scrollHeight - list.clientHeight);
+    }
+  });
 }
 
 // ── Kanban rendering ───────────────────────────────────────────────────────
@@ -479,7 +532,7 @@ function renderKanban() {
                   onmouseenter="UIModule.highlightPhase('${phase}')"
                   onmouseleave="UIModule.highlightPhase(null)"
                   tabindex="0"
-                  onkeydown="if(event.key==='Enter')UIModule.openDetail(${idx}, 'open-kanban')">
+                  onkeydown="if(event.key==='Enter'||event.key===' ')UIModule.openDetail(${idx}, 'open-kanban')">
         <div class="kanban-card-name">${esc(s.Service)}</div>
         ${s.Contact ? `<div class="kanban-card-contact">${esc(s.Contact)}</div>` : ""}
         <div class="kanban-card-meta">
@@ -582,10 +635,8 @@ function highlightPhase(phase) {
 
 // ── Select from list ───────────────────────────────────────────────────────
 function selectFromList(idx) {
-  activeIdx = idx;
-  renderList();
-  scrollToActive();
   openDetail(idx);
+  scrollToActive();
   const s = window.SERVICES[idx];
   if (s?.Latitude && s?.Longitude && activeView === "map") {
     window.MapModule.flyToAndShow(idx);
@@ -598,7 +649,6 @@ function setActiveMarker(idx) {
   activeIdx = idx;
   renderList();
   scrollToActive();
-  pushURLState(idx);
 }
 
 // ── Cluster drill-down ─────────────────────────────────────────────────────
@@ -636,8 +686,9 @@ function buildPopupHTML(idx) {
   const s = window.SERVICES[idx];
   if (!s) return `<div class='popup-inner'>${t("detail.not.found")}</div>`;
 
-  const phases  = s.Phase.split(",").map(p => p.trim()).filter(Boolean);
-  const safeURL = s.URL ? s.URL.replace(/'/g, "%27") : null;
+  const phases    = s.Phase.split("|").map(p => p.trim()).filter(Boolean);
+  const safeURL   = s.URL ? esc(s.URL.replace(/'/g, "%27")) : null;
+  const officeURL = s.Office ? planUrl(s.Office) : null;
 
   return `<div class="popup-inner">
     <div class="popup-unit">${esc(s.Unit)}</div>
@@ -645,9 +696,11 @@ function buildPopupHTML(idx) {
     ${s.Audience ? `<div class="popup-audience">◉ ${esc(s.Audience)}</div>` : ""}
     ${s.Office
       ? `<div class="popup-office">
-           <a href="${planUrl(s.Office)}" target="_blank" title="${t("popup.plan")}">
-              ⌖ ${esc(s.Office)} — ${t("popup.plan.link")}
-           </a>
+           ${officeURL
+             ? `<a href="${officeURL}" target="_blank" title="${t("popup.plan")}">
+                  ⌖ ${esc(s.Office)} — ${t("popup.plan.link")}
+                </a>`
+             : `⌖ ${esc(s.Office)}`}
          </div>`
       : ""}
     <div class="popup-phases">
@@ -658,7 +711,7 @@ function buildPopupHTML(idx) {
       : ""}
     <div class="popup-actions">
       ${safeURL
-        ? `<button class="popup-btn" onclick="window.open('${safeURL}','_blank')">
+        ? `<button class="popup-btn" onclick="window.open('${safeURL}','_blank','noopener')">
              ${t("popup.access")}
            </button>`
         : ""}
@@ -808,7 +861,7 @@ function readSuggestForm() {
 }
 
 function validateSuggestForm(data) {
-  return !!(data.Service && data.Unit && data.Phase && data._descriptionRaw);
+  return !!(data.Service && data.Unit && data.Contact && data.Phase && data.URL && data.Office && data._descriptionRaw);
 }
 
 function buildSuggestCSVLine(data) {
@@ -866,30 +919,79 @@ function togglePhaseChip(btn) {
   btn.setAttribute("aria-pressed", pressed ? "false" : "true");
 }
 
+function highlightMissingFields(data) {
+  // Clear previous field-level errors
+  document.querySelectorAll(".form-row.field-missing").forEach(el => el.classList.remove("field-missing"));
+
+  const checks = [
+    { value: data.Service,        el: document.getElementById("sf-service") },
+    { value: data.Unit,           el: document.getElementById("sf-unit") },
+    { value: data.Contact,        el: document.getElementById("sf-contact") },
+    { value: data.Phase,          el: document.getElementById("sf-phase-group") },
+    { value: data.URL,            el: document.getElementById("sf-url") },
+    { value: data.Office,         el: document.getElementById("sf-office") },
+    { value: data._descriptionRaw, el: document.getElementById("sf-desc") },
+  ];
+
+  checks.forEach(({ value, el }) => {
+    if (!value && el) {
+      const row = el.closest(".form-row");
+      if (row) row.classList.add("field-missing");
+    }
+  });
+}
+
 function resetSuggestForm() {
   document.getElementById("suggest-form").reset();
   document.querySelectorAll('#sf-phase-group .phase-chip').forEach(btn => {
     btn.setAttribute("aria-pressed", "false");
   });
+  // Clear field-level errors
+  document.querySelectorAll(".form-row.field-missing").forEach(el => el.classList.remove("field-missing"));
+  const countEl = document.getElementById("sf-desc-count");
+  if (countEl) {
+    countEl.textContent = "0";
+    countEl.style.color = "";
+  }
 }
 
 function openSuggestModal() {
+  resetSuggestForm();
   translateSuggestModal();
   document.getElementById("suggest-modal").classList.remove("hidden");
   document.getElementById("suggest-modal-backdrop").classList.add("visible");
   document.getElementById("suggest-form-error").classList.add("hidden");
   document.getElementById("suggest-preview").classList.add("hidden");
+  const firstInput = document.getElementById("sf-service");
+  if (firstInput) firstInput.focus();
 }
 
 function closeSuggestModal() {
   document.getElementById("suggest-modal").classList.add("hidden");
   document.getElementById("suggest-modal-backdrop").classList.remove("visible");
+  // Return focus to the trigger button
+  const trigger = document.getElementById("suggest-open-btn");
+  if (trigger) trigger.focus();
 }
 
 // ── Direct sending ──────────────────────────────────────────────────────────
 // The "Suggest a service" form sends via the visitor's mail client (mailto:).
 // This is intentional: the app is fully static with no backend, so there is
 // no server-side SMTP relay available.
+
+function focusTrap(container) {
+  const focusable = container.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+  const first = focusable[0];
+  const last  = focusable[focusable.length - 1];
+  container.addEventListener("keydown", e => {
+    if (e.key !== "Tab") return;
+    if (e.shiftKey) {
+      if (document.activeElement === first) { e.preventDefault(); last.focus(); }
+    } else {
+      if (document.activeElement === last) { e.preventDefault(); first.focus(); }
+    }
+  });
+}
 
 function setupSuggestModal() {
   const openBtn  = document.getElementById("suggest-open-btn");
@@ -902,13 +1004,45 @@ function setupSuggestModal() {
   if (closeBtn) closeBtn.addEventListener("click", closeSuggestModal);
   if (backdrop) backdrop.addEventListener("click", closeSuggestModal);
 
+  focusTrap(document.getElementById("suggest-modal"));
+
   document.querySelectorAll('#sf-phase-group .phase-chip').forEach(btn => {
-    btn.addEventListener("click", () => togglePhaseChip(btn));
+    btn.addEventListener("click", () => {
+      togglePhaseChip(btn);
+      const row = btn.closest(".form-row");
+      if (row) row.classList.remove("field-missing");
+    });
   });
+
+  // Clear field-level errors on user interaction
+  document.querySelectorAll("#suggest-form input, #suggest-form textarea, #suggest-form select").forEach(el => {
+    el.addEventListener("input", () => {
+      const row = el.closest(".form-row");
+      if (row) row.classList.remove("field-missing");
+    });
+    el.addEventListener("focus", () => {
+      const row = el.closest(".form-row");
+      if (row) row.classList.remove("field-missing");
+    });
+  });
+
+  // Description char counter
+  const descField = document.getElementById("sf-desc");
+  const countEl = document.getElementById("sf-desc-count");
+  if (descField && countEl) {
+    const updateCount = () => {
+      const len = descField.value.length;
+      countEl.textContent = len;
+      countEl.style.color = len >= 4500 ? "var(--brand-accent)" : "";
+    };
+    descField.addEventListener("input", updateCount);
+    updateCount(); // init
+  }
 
   if (sendBtn) {
     sendBtn.addEventListener("click", () => {
       const data = readSuggestForm();
+      highlightMissingFields(data);
       if (!validateSuggestForm(data)) {
         errorEl.classList.remove("hidden");
         document.getElementById("suggest-preview").classList.add("hidden");
@@ -963,13 +1097,13 @@ function applyConfig() {
     `  --brand-gray-200:    ${c.gray200     || "#D5D5D5"};`,
     `  --brand-gray-500:    ${c.gray500     || "#8E8E8E"};`,
     `  --brand-gray-600:    ${c.gray600     || "#707070"};`,
-    `  --phase-planning:   ${c.phase2Color || "#5C2483"};`,
-    `  --phase-collection: ${c.secondaryMid     || "#007480"};`,
-    `  --phase-processing: ${c.secondary        || "#00A79F"};`,
-    `  --phase-store:      ${c.phase1Color || "#EC6608"};`,
-    `  --phase-publish:    ${c.accent      || "#FF0000"};`,
-    `  --phase-archive:    ${c.secondaryDark    || "#004248"};`,
-    `  --phase-reuse:      ${c.phase3Color || "#4F8FCC"};`,
+    `  --phase-planning-color:   ${c.phase2Color || "#5C2483"};`,
+    `  --phase-collection-color: ${c.secondaryMid     || "#007480"};`,
+    `  --phase-processing-color: ${c.secondary        || "#00A79F"};`,
+    `  --phase-store-color:      ${c.phase1Color || "#EC6608"};`,
+    `  --phase-publish-color:    ${c.accent      || "#FF0000"};`,
+    `  --phase-archive-color:    ${c.secondaryDark    || "#004248"};`,
+    `  --phase-reuse-color:      ${c.phase3Color || "#4F8FCC"};`,
     "}"
   ].join("\n");
   document.head.appendChild(styleEl);
@@ -1063,8 +1197,12 @@ function init() {
   // Filter chips
   document.querySelectorAll(".filter-chip").forEach(btn => {
     btn.addEventListener("click", () => {
-      document.querySelectorAll(".filter-chip").forEach(b => b.classList.remove("active"));
+      document.querySelectorAll(".filter-chip").forEach(b => {
+        b.classList.remove("active");
+        b.setAttribute("aria-pressed", "false");
+      });
       btn.classList.add("active");
+      btn.setAttribute("aria-pressed", "true");
       activeFilter = btn.dataset.phase;
       resetAndRefresh();
     });
@@ -1111,11 +1249,55 @@ function init() {
         this.textContent = i18n.t("header.share");
         delete this.dataset.copied;
       }, 2000);
-    });
+    }).catch(() => {});
+  });
+
+  // Escape key handler
+  document.addEventListener("keydown", e => {
+    if (e.key !== "Escape") return;
+    if (!document.getElementById("suggest-modal").classList.contains("hidden")) {
+      closeSuggestModal();
+    } else if (activeDetail !== null) {
+      closeDetail();
+    } else if (document.getElementById("panel").classList.contains("drawer-open")) {
+      closeDrawer();
+    } else if (clusterIndices !== null) {
+      exitClusterView();
+    }
   });
 
   // Detail close
   document.getElementById("detail-close").addEventListener("click", closeDetail);
+
+  // Detail prev/next — preserve panel mode (open-kanban vs open)
+  document.getElementById("detail-prev").addEventListener("click", () => {
+    const panel = document.getElementById("detail-panel");
+    const mode = panel.classList.contains("open-kanban") ? "open-kanban" : "open";
+    const visible = getVisibleIndices();
+    const pos = visible.indexOf(activeDetail);
+    if (pos > 0) {
+      const newIdx = visible[pos - 1];
+      openDetail(newIdx, mode);
+      if (activeView === "map" && window.MapModule) {
+        const s = window.SERVICES[newIdx];
+        if (s?.Latitude && s?.Longitude) window.MapModule.flyToAndShow(newIdx);
+      }
+    }
+  });
+  document.getElementById("detail-next").addEventListener("click", () => {
+    const panel = document.getElementById("detail-panel");
+    const mode = panel.classList.contains("open-kanban") ? "open-kanban" : "open";
+    const visible = getVisibleIndices();
+    const pos = visible.indexOf(activeDetail);
+    if (pos < visible.length - 1) {
+      const newIdx = visible[pos + 1];
+      openDetail(newIdx, mode);
+      if (activeView === "map" && window.MapModule) {
+        const s = window.SERVICES[newIdx];
+        if (s?.Latitude && s?.Longitude) window.MapModule.flyToAndShow(newIdx);
+      }
+    }
+  });
 
   // Mobile drawer
   const toggleBtn = document.getElementById("drawer-toggle");
