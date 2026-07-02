@@ -346,11 +346,13 @@ html, body {
   display: flex; flex-direction: column;
   z-index: 60;
   transform: translateX(100%);
-  transition: transform .4s ease;
+  opacity: 0;
+  transition: opacity .2s ease;
   box-shadow: -4px 0 20px rgba(0,0,0,.08);
+  pointer-events: none;
 }
-.detail-panel.open        { transform: translateX(-420px); }
-.detail-panel.open-kanban { transform: translateX(0); }
+.detail-panel.open        { transform: translateX(-420px); opacity: 1; pointer-events: auto; }
+.detail-panel.open-kanban { transform: translateX(0);       opacity: 1; pointer-events: auto; }
 
 .detail-panel-top {
   display: flex; align-items: center; justify-content: space-between;
@@ -669,6 +671,53 @@ html, body {
 .offscreen-sw { bottom: 22px; left: 10px;  }
 .offscreen-nw { top: 10px;    left: 10px;  }
 
+/* ── Detail panel prev/next nav ─────────────────────────────── */
+.detail-nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.detail-nav-btn {
+  background: none;
+  border: 1px solid var(--brand-gray-200);
+  border-radius: 6px;
+  width: 28px;
+  height: 28px;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--brand-text);
+  transition: border-color 0.12s ease, opacity 0.12s ease;
+}
+.detail-nav-btn:hover:not(:disabled) {
+  border-color: var(--brand-gray-500);
+}
+.detail-nav-btn:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+.detail-nav-counter {
+  font-size: 11px;
+  color: var(--brand-gray-500);
+  min-width: 36px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  user-select: none;
+}
+
+/* ── Suggest modal char counter ─────────────────────────────── */
+.char-counter {
+  font-size: 11px;
+  color: var(--brand-gray-500);
+  text-align: right;
+  margin-top: 4px;
+  font-variant-numeric: tabular-nums;
+  user-select: none;
+}
+
 @media (max-width: 720px) {
   .offscreen-badge { display: none !important; }
 }
@@ -700,7 +749,6 @@ html, body {
   .header-count       { display: none; }
   .header-share-btn   { display: none; }
   .header-suggest-btn { display: none; }
-  #lang-switcher      { display: none; }
   .lang-select        { display: none; }   /* hidden on mobile — drawer buttons used instead */
   .header-search-wrap { display: none; }   /* hidden — panel drawer has search instead */
   .filterbar-label    { display: none; }
@@ -733,8 +781,8 @@ html, body {
     border-left: none; border-top: 3px solid var(--brand-accent);
     transform: translateY(100%);
   }
-  .detail-panel.open        { transform: translateY(0); }
-  .detail-panel.open-kanban { transform: translateY(0); }
+  .detail-panel.open        { transform: translateY(0); opacity: 1; pointer-events: auto; }
+  .detail-panel.open-kanban { transform: translateY(0); opacity: 1; pointer-events: auto; }
 
   .map-legend         { display: none; }
   .map-fullscreen-btn { display: none; }
@@ -822,7 +870,7 @@ html, body {
 #suggest-form select:focus,
 #suggest-form textarea:focus {
   outline: none;
-  border-color: var(--brand-accent);
+  border-color: var(--brand-secondary);
 }
 #suggest-form textarea { resize: vertical; }
 
@@ -906,6 +954,28 @@ html, body {
   padding: 14px 20px;
   border-top: 1px solid var(--brand-gray-200);
   flex-shrink: 0;
+}
+
+/* ── Suggest modal field-level errors ────────────────────────── */
+/* Turn the field's own border red instead of adding an extra outline */
+#suggest-form .form-row.field-missing input,
+#suggest-form .form-row.field-missing textarea,
+#suggest-form .form-row.field-missing select,
+#suggest-form .form-row.field-missing .phase-chip {
+  border-color: var(--brand-accent);
+  outline: none;
+}
+/* Error + focus: red border takes priority over teal focus */
+#suggest-form .form-row.field-missing input:focus,
+#suggest-form .form-row.field-missing textarea:focus,
+#suggest-form .form-row.field-missing select:focus,
+#suggest-form .form-row.field-missing .phase-chip:focus {
+  border-color: var(--brand-accent);
+}
+/* Error: labels turn dark red */
+#suggest-form .form-row.field-missing label,
+#suggest-form .form-row.field-missing .form-group-label {
+  color: var(--brand-accent-dark);
 }
 
 @media (max-width: 600px) {

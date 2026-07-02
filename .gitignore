@@ -22,3 +22,6 @@
 # ── Local config overrides ───────────────────────────────────────────────────
 # Useful if someone wants a local config without committing it
 config.local.js
+
+AGENTS.md
+.opencode

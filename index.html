@@ -38,7 +38,7 @@
   <!-- ── Header ──────────────────────────────────────────────────────────── -->
   <header class="header">
     <div class="header-logo">
-      <a href="#" onclick="UIModule.resetAll(); return false;" aria-label="Retour à l'accueil">
+      <a href="#" onclick="UIModule.resetAll(); return false;" data-i18n-aria="header.logo.aria">
         <img id="site-logo" src="" alt="" class="logo-rdsn-img">
       </a>
     </div>
@@ -144,25 +144,25 @@
       </button>
       <div class="map-legend" role="complementary" data-i18n-aria="legend.aria">
         <div class="legend-title" data-i18n="map.legend.title">Phase RDLC</div>
-        <div class="legend-item" onclick="document.querySelector('[data-phase=\'Planning & Design\']').click()">
+        <div class="legend-item" tabindex="0" role="button" onclick="document.querySelector('[data-phase=\'Planning & Design\']').click()" onkeydown="if(event.key==='Enter'||event.key===' ')this.click()">
           <div class="legend-dot" style="background:var(--phase-planning)"></div><span data-i18n="cycle.plan">Planification & Conception</span>
         </div>
-        <div class="legend-item" onclick="document.querySelector('[data-phase=\'Data Collection\']').click()">
+        <div class="legend-item" tabindex="0" role="button" onclick="document.querySelector('[data-phase=\'Data Collection\']').click()" onkeydown="if(event.key==='Enter'||event.key===' ')this.click()">
           <div class="legend-dot" style="background:var(--phase-collection)"></div><span data-i18n="cycle.col">Collection des données</span>
         </div>
-        <div class="legend-item" onclick="document.querySelector('[data-phase=\'Processing & Analysis\']').click()">
+        <div class="legend-item" tabindex="0" role="button" onclick="document.querySelector('[data-phase=\'Processing & Analysis\']').click()" onkeydown="if(event.key==='Enter'||event.key===' ')this.click()">
           <div class="legend-dot" style="background:var(--phase-processing)"></div><span data-i18n="cycle.process">Processus & Analyses</span>
         </div>
-        <div class="legend-item" onclick="document.querySelector('[data-phase=\'Use & Store\']').click()">
+        <div class="legend-item" tabindex="0" role="button" onclick="document.querySelector('[data-phase=\'Use & Store\']').click()" onkeydown="if(event.key==='Enter'||event.key===' ')this.click()">
           <div class="legend-dot" style="background:var(--phase-store)"></div><span data-i18n="cycle.store">Utilisation & Stockage</span>
         </div>
-        <div class="legend-item" onclick="document.querySelector('[data-phase=\'Publication & Sharing\']').click()">
+        <div class="legend-item" tabindex="0" role="button" onclick="document.querySelector('[data-phase=\'Publication & Sharing\']').click()" onkeydown="if(event.key==='Enter'||event.key===' ')this.click()">
           <div class="legend-dot" style="background:var(--phase-publish)"></div><span data-i18n="cycle.pub">Publication & Partage</span>
         </div>
-        <div class="legend-item" onclick="document.querySelector('[data-phase=\'Archiving\']').click()">
+        <div class="legend-item" tabindex="0" role="button" onclick="document.querySelector('[data-phase=\'Archiving\']').click()" onkeydown="if(event.key==='Enter'||event.key===' ')this.click()">
           <div class="legend-dot" style="background:var(--phase-archive)"></div><span data-i18n="cycle.arch">Archive</span>
         </div>
-        <div class="legend-item" onclick="document.querySelector('[data-phase=\'Discover & Reuse\']').click()">
+        <div class="legend-item" tabindex="0" role="button" onclick="document.querySelector('[data-phase=\'Discover & Reuse\']').click()" onkeydown="if(event.key==='Enter'||event.key===' ')this.click()">
           <div class="legend-dot" style="background:var(--phase-reuse)"></div><span data-i18n="cycle.disc">Découvrir & Réutiliser</span>
         </div>
       </div>
@@ -185,9 +185,14 @@
     </div>
 
     <!-- ── Detail panel ───────────────────────────────────────────────────── -->
-    <div class="detail-panel" id="detail-panel" data-i18n-aria="detail.panel.aria">
+    <div class="detail-panel" id="detail-panel" tabindex="-1" data-i18n-aria="detail.panel.aria">
       <div class="detail-panel-top">
         <span class="detail-panel-label" data-i18n="detail.label">Fiche service</span>
+        <div class="detail-nav" role="navigation" data-i18n-aria="detail.nav.aria">
+          <button class="detail-nav-btn" id="detail-prev" data-i18n-aria="detail.prev.aria">‹</button>
+          <span class="detail-nav-counter" id="detail-nav-counter" aria-live="polite"></span>
+          <button class="detail-nav-btn" id="detail-next" data-i18n-aria="detail.next.aria">›</button>
+        </div>
         <button class="detail-close" id="detail-close" data-i18n-aria="detail.close.aria">✕</button>
       </div>
       <div class="detail-content" id="detail-content"></div>
@@ -245,20 +250,20 @@
   </div>
   <div class="modal-body">
     <p class="modal-intro" data-i18n="suggest.modal.intro">
-      Décrivez le service à ajouter. Un e-mail pré-rempli sera préparé pour l'équipe RDM, avec un résumé lisible et une ligne prête à coller dans le fichier services.csv.
+      Décrivez le service à ajouter. Un e-mail pré-rempli sera préparé pour l'équipe RDM, merci de ne pas le modifier.
     </p>
     <form id="suggest-form" novalidate>
       <div class="form-row">
         <label for="sf-service" data-i18n="suggest.label.service">Nom du service *</label>
-        <input type="text" id="sf-service" autocomplete="off">
+        <input type="text" id="sf-service" autocomplete="off" required>
       </div>
       <div class="form-row">
         <label for="sf-unit" data-i18n="suggest.label.unit">Unité *</label>
-        <input type="text" id="sf-unit" autocomplete="off">
+        <input type="text" id="sf-unit" autocomplete="off" required>
       </div>
       <div class="form-row">
-        <label for="sf-contact" data-i18n="suggest.label.contact">Contact (e-mail)</label>
-        <input type="email" id="sf-contact" autocomplete="off">
+        <label for="sf-contact" data-i18n="suggest.label.contact">Contact (e-mail) *</label>
+        <input type="email" id="sf-contact" autocomplete="off" required>
       </div>
       <div class="form-row">
         <label for="sf-audience" data-i18n="suggest.label.audience">Public concerné</label>
@@ -271,7 +276,7 @@
 
       <div class="form-row">
         <span class="form-group-label" data-i18n="suggest.label.phase">Phase(s) du cycle de vie *</span>
-        <div class="phase-chip-group" id="sf-phase-group" role="group" data-i18n-aria="suggest.label.phase">
+        <div class="phase-chip-group" id="sf-phase-group" role="group" tabindex="-1" data-i18n-aria="suggest.label.phase">
           <button type="button" class="phase-chip" data-phase="Planning & Design" aria-pressed="false">
             <span class="phase-chip-dot" style="background:var(--phase-planning)"></span><span data-i18n="cycle.plan">Planification & Conception</span>
           </button>
@@ -300,8 +305,8 @@
       </div>
 
       <div class="form-row">
-        <label for="sf-url" data-i18n="suggest.label.url">URL</label>
-        <input type="url" id="sf-url" autocomplete="off">
+        <label for="sf-url" data-i18n="suggest.label.url">URL *</label>
+        <input type="url" id="sf-url" autocomplete="off" required>
       </div>
 
       <div class="form-row form-row-half">
@@ -319,16 +324,16 @@
       </p>
 
       <div class="form-row">
-        <label for="sf-office" data-i18n="suggest.label.office">Bureau / local</label>
-        <input type="text" id="sf-office" autocomplete="off">
+        <label for="sf-office" data-i18n="suggest.label.office">Bureau / local *</label>
+        <input type="text" id="sf-office" autocomplete="off" required>
       </div>
 
       <div class="form-row">
         <label for="sf-desc" data-i18n="suggest.label.description">Description *</label>
-        <textarea id="sf-desc" rows="4"></textarea>
-        <p class="form-hint" data-i18n="suggest.desc.hint">
-          Rédigez dans la langue actuelle de la page. Les autres traductions seront ajoutées par l'équipe RDM.
-        </p>
+        <textarea id="sf-desc" rows="4" maxlength="5000" aria-describedby="sf-desc-counter" required></textarea>
+        <div class="char-counter" id="sf-desc-counter" aria-live="polite">
+          <span id="sf-desc-count">0</span>/5000
+        </div>
       </div>
 
       <div class="form-error hidden" id="suggest-form-error" role="alert" data-i18n="suggest.error.required">
